@@ -3,7 +3,7 @@ export type Token = {
   literal: string;
 };
 
-type TokenItem = (typeof TokenType)[keyof typeof TokenType];
+export type TokenItem = (typeof TokenType)[keyof typeof TokenType];
 
 export const TokenType = {
   Illegal: "ILLEGAL",
@@ -29,3 +29,13 @@ export const TokenType = {
   Funcion: "FUNCTION",
   Let: "LET",
 } as const;
+
+export function createToken({
+  tokenType,
+  ch,
+}: {
+  tokenType: TokenItem;
+  ch: string;
+}): Token {
+  return { type: tokenType, literal: String(ch) };
+}

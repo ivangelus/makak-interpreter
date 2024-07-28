@@ -1,0 +1,13 @@
+{
+  "ts-node": {
+    "compilerOptions": {
+      "module": "commonjs"
+    }
+  },
+    "compilerOptions": {
+      "module": "commonjs",
+      "noImplicitAny": true,
+      "sourceMap": true,
+      "types": ["jest", "node"]
+    },
+  }
