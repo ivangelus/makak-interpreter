@@ -20,6 +20,9 @@ export const TokenType = {
   Asterisk: "*",
   Slash: "/",
 
+  EQ: "==",
+  NOT_EQ: "!=",
+
   LT: "<",
   GT: ">",
 

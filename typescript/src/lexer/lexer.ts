@@ -77,19 +77,37 @@ export class Lexer {
     }
   }
 
+  private peekChar(): string | 0 {
+    if (this.readPosition >= this.inputLength) {
+        return 0;
+    } else {
+        return this.input[this.readPosition];
+    }
+}
+
   public nextToken() {
     this.skipWhitespace();
 
     let tok: Token;
     switch (this.ch) {
       case "=":
-        tok = createToken({ tokenType: TokenType.Assign, ch: this.ch });
+        if (this.peekChar() === '=') {
+          tok = createToken({ tokenType: TokenType.EQ, ch: '=='})
+          this.readChar()
+        } else {
+          tok = createToken({ tokenType: TokenType.Assign, ch: this.ch });
+        }
         break;
       case ";":
         tok = createToken({ tokenType: TokenType.Semicolon, ch: this.ch });
         break;
       case "!":
-        tok = createToken({ tokenType: TokenType.Bang, ch: this.ch });
+        if (this.peekChar() === '=') {
+          tok = createToken({ tokenType: TokenType.NOT_EQ, ch: '!='})
+          this.readChar()
+        } else {
+          tok = createToken({ tokenType: TokenType.Bang, ch: this.ch });
+        }
         break;
       case "*":
         tok = createToken({ tokenType: TokenType.Asterisk, ch: this.ch });

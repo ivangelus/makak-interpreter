@@ -41,6 +41,9 @@ describe("Lexer", () => {
     } else {
         return false;
     }
+
+    10 == 10;
+    10 != 9;
     `;
     const lexer = new Lexer(input);
     const testCases = [
@@ -109,6 +112,14 @@ describe("Lexer", () => {
       { expectedType: TokenType.False, expectedLiteral: "false"},
       { expectedType: TokenType.Semicolon, expectedLiteral: ";"},
       { expectedType: TokenType.RBrace, expectedLiteral: "}"},
+      { expectedType: TokenType.Int, expectedLiteral: "10"},
+      { expectedType: TokenType.EQ, expectedLiteral: "=="},
+      { expectedType: TokenType.Int, expectedLiteral: "10"},
+      { expectedType: TokenType.Semicolon, expectedLiteral: ";"},
+      { expectedType: TokenType.Int, expectedLiteral: "10"},
+      { expectedType: TokenType.NOT_EQ, expectedLiteral: "!="},
+      { expectedType: TokenType.Int, expectedLiteral: "9"},
+      { expectedType: TokenType.Semicolon, expectedLiteral: ";"},
       { expectedType: TokenType.Eof, expectedLiteral: ""},
     ];
 
