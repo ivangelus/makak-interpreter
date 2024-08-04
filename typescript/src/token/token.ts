@@ -35,11 +35,21 @@ export const TokenType = {
   // Keywords
   Function: "FUNCTION",
   Let: "LET",
+  If: "IF",
+  Else: "ELSE",
+  Return: "RETURN",
+  True: "TRUE",
+  False: "FALSE",
 } as const;
 
 export const Keywords = {
   "fn": createToken({ tokenType: TokenType.Function, ch: "fn"}),
-  "let": createToken({ tokenType: TokenType.Let, ch: "let"})
+  "let": createToken({ tokenType: TokenType.Let, ch: "let"}),
+  "if": createToken({ tokenType: TokenType.If, ch: "if"}),
+  "else": createToken({ tokenType: TokenType.Else, ch: "else"}),
+  "return": createToken({ tokenType: TokenType.Return, ch: "return"}),
+  "true": createToken({ tokenType: TokenType.True, ch: "true"}),
+  "false": createToken({ tokenType: TokenType.False, ch: "false"}),
 } as const;
 
 export function createToken({
