@@ -33,6 +33,8 @@ describe("Lexer", () => {
     };
     
     let result = add(five, ten);
+    !-/*5;
+    5 < 10 > 5;
     `;
     const lexer = new Lexer(input);
     const testCases = [
@@ -71,6 +73,18 @@ describe("Lexer", () => {
       { expectedType: TokenType.Comma, expectedLiteral: ","},
       { expectedType: TokenType.Ident, expectedLiteral: "ten"},
       { expectedType: TokenType.RParen, expectedLiteral: ")"},
+      { expectedType: TokenType.Semicolon, expectedLiteral: ";"},
+      { expectedType: TokenType.Bang, expectedLiteral: "!"},
+      { expectedType: TokenType.Minus, expectedLiteral: "-"},
+      { expectedType: TokenType.Slash, expectedLiteral: "/"},
+      { expectedType: TokenType.Asterisk, expectedLiteral: "*"},
+      { expectedType: TokenType.Int, expectedLiteral: "5"},
+      { expectedType: TokenType.Semicolon, expectedLiteral: ";"},
+      { expectedType: TokenType.Int, expectedLiteral: "5"},
+      { expectedType: TokenType.LT, expectedLiteral: "<"},
+      { expectedType: TokenType.Int, expectedLiteral: "10"},
+      { expectedType: TokenType.GT, expectedLiteral: ">"},
+      { expectedType: TokenType.Int, expectedLiteral: "5"},
       { expectedType: TokenType.Semicolon, expectedLiteral: ";"},
       { expectedType: TokenType.Eof, expectedLiteral: ""},
     ];

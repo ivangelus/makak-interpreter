@@ -15,6 +15,13 @@ export const TokenType = {
   // Operators
   Assign: "=",
   Plus: "+",
+  Minus: "-",
+  Bang: "!",
+  Asterisk: "*",
+  Slash: "/",
+
+  LT: "<",
+  GT: ">",
 
   // Delimiters
   Comma: ",",

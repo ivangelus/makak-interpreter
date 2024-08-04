@@ -88,6 +88,21 @@ export class Lexer {
       case ";":
         tok = createToken({ tokenType: TokenType.Semicolon, ch: this.ch });
         break;
+      case "!":
+        tok = createToken({ tokenType: TokenType.Bang, ch: this.ch });
+        break;
+      case "*":
+        tok = createToken({ tokenType: TokenType.Asterisk, ch: this.ch });
+        break;
+      case ">":
+        tok = createToken({ tokenType: TokenType.GT, ch: this.ch });
+        break;
+      case "<":
+        tok = createToken({ tokenType: TokenType.LT, ch: this.ch });
+        break;
+      case "/":
+        tok = createToken({ tokenType: TokenType.Slash, ch: this.ch });
+        break;
       case "(":
         tok = createToken({ tokenType: TokenType.LParen, ch: this.ch });
         break;
@@ -99,6 +114,9 @@ export class Lexer {
         break;
       case "+":
         tok = createToken({ tokenType: TokenType.Plus, ch: this.ch });
+        break;
+      case "-":
+        tok = createToken({ tokenType: TokenType.Minus, ch: this.ch });
         break;
       case "{":
         tok = createToken({ tokenType: TokenType.LBrace, ch: this.ch });
