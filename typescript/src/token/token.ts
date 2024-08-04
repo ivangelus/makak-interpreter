@@ -26,8 +26,13 @@ export const TokenType = {
   RBrace: "}",
 
   // Keywords
-  Funcion: "FUNCTION",
+  Function: "FUNCTION",
   Let: "LET",
+} as const;
+
+export const Keywords = {
+  "fn": createToken({ tokenType: TokenType.Function, ch: "fn"}),
+  "let": createToken({ tokenType: TokenType.Let, ch: "let"})
 } as const;
 
 export function createToken({
