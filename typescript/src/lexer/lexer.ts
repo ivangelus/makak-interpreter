@@ -15,7 +15,7 @@ export class Lexer {
   private input: string;
   private position: number;
   private readPosition: number;
-  private ch: string | 0;
+  private ch: string;
   private inputLength: number;
 
   constructor(input: string) {
@@ -28,7 +28,7 @@ export class Lexer {
 
   private readChar(): void {
     if (this.readPosition >= this.inputLength) {
-      this.ch = 0;
+      this.ch = '\0';
     } else {
       this.ch = this.input[this.readPosition];
     }
@@ -79,7 +79,7 @@ export class Lexer {
 
   private peekChar(): string | 0 {
     if (this.readPosition >= this.inputLength) {
-        return 0;
+        return '\0';
     } else {
         return this.input[this.readPosition];
     }
@@ -142,7 +142,7 @@ export class Lexer {
       case "}":
         tok = createToken({ tokenType: TokenType.RBrace, ch: this.ch });
         break;
-      case 0:
+      case "\0":
         tok = createToken({ tokenType: TokenType.Eof, ch: "" });
         break;
       default:
