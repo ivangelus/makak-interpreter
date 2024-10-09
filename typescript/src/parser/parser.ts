@@ -9,6 +9,7 @@ export class Parser {
   private curToken: Token;
   private peekToken: Token;
   private lexer: Lexer;
+  private errors: string[] = [];
 
   constructor(lexer: Lexer) {
     this.lexer = lexer;
@@ -77,7 +78,18 @@ export class Parser {
       this.nextToken();
       return true;
     } else {
+      this.peekError(expected);
       return false;
     }
+  }
+
+  private peekError(t: TokenItem) {
+    this.errors.push(
+      `expected next token to be ${t}, instead got ${this.peekToken.type}`,
+    );
+  }
+
+  public getErrors() {
+    return this.errors;
   }
 }
