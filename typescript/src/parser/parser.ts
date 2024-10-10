@@ -4,6 +4,7 @@ import { Program } from "../ast/program";
 import { Statement } from "../ast/statements/statement";
 import { LetStatement } from "../ast/statements/letStatement";
 import { Identifier } from "../ast/expressions/identifier";
+import { ReturnStatement } from "../ast/statements/returnStatement";
 
 export class Parser {
   private curToken: Token;
@@ -38,9 +39,24 @@ export class Parser {
     switch (this.curToken.type) {
       case TokenType.Let:
         return this.parseLetStatement();
+      case TokenType.Return:
+        return this.parseReturnStatement();
       default:
         return null;
     }
+  }
+
+  private parseReturnStatement(): ReturnStatement | null {
+    const statement = new ReturnStatement(this.curToken);
+    this.nextToken();
+
+    // TODO: We're skipping the expressions until we
+    // encounter a semicolon
+    while (!this.curTokenIs(TokenType.Semicolon)) {
+      this.nextToken();
+    }
+
+    return statement;
   }
 
   private parseLetStatement(): LetStatement | null {
