@@ -1,3 +1,6 @@
+import { Identifier } from "../../ast/expressions/identifier";
+import { IntegerLiteral } from "../../ast/expressions/integerLiteral";
+import { ExpressionStatement } from "../../ast/statements/expressionStatement";
 import { LetStatement } from "../../ast/statements/letStatement";
 import { ReturnStatement } from "../../ast/statements/returnStatement";
 import { Lexer } from "../../lexer/lexer";
@@ -91,12 +94,25 @@ describe("Parser", () => {
 
     expect(errors.length).toBe(0);
 
-    console.log(program.statements)
+    expect(program.statements.length).toEqual(1);
+    expect(program.statements[0].constructor.name).toEqual('ExpressionStatement');
+    expect((program.statements[0] as unknown as ExpressionStatement).getExpression().constructor.name).toEqual('Identifier');
+  })
+
+  it('should parse integer literal expressions', () => {
+    const input = '5;';
+    const lexer = new Lexer(input);
+    const parser = new Parser(lexer);
+    const program = parser.parseProgram();
+
+    const errors = parser.getErrors();
+
+    expect(errors.length).toBe(0);
 
     expect(program.statements.length).toEqual(1);
     expect(program.statements[0].constructor.name).toEqual('ExpressionStatement');
-    // TODO
-    // @ts-ignore
-    expect(program.statements[0].expression.constructor.name).toEqual('Identifier');
+    expect((program.statements[0] as unknown as ExpressionStatement).getExpression().constructor.name).toEqual('IntegerLiteral');
+    expect(((program.statements[0] as unknown as ExpressionStatement).getExpression() as unknown as IntegerLiteral).getValue()).toEqual(5);
+    expect(((program.statements[0] as unknown as ExpressionStatement).getExpression() as unknown as IntegerLiteral).getValue()).toEqual(5);
   })
 });

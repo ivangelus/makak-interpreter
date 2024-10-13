@@ -13,7 +13,11 @@ export class ExpressionStatement extends Statement {
     public setExpression(e: Expression) {
         this.expression = e;
     }
-
+    
+    public getExpression(): Expression {
+        return this.expression;
+    }
+    
     public toString(): string {
         if(this.expression !== null) {
             return this.expression.toString();

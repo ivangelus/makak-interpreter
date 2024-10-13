@@ -7,6 +7,7 @@ import { Identifier } from "../ast/expressions/identifier";
 import { ReturnStatement } from "../ast/statements/returnStatement";
 import { ExpressionStatement } from "../ast/statements/expressionStatement";
 import { Expression } from "../ast/expressions/expression";
+import { IntegerLiteral } from "../ast/expressions/integerLiteral";
 
 export const Precedence = {
   Lowest: 0,
@@ -107,6 +108,17 @@ export class Parser {
     return expStmt;
   }
 
+  private parseIntegerLiteral = (): Expression =>  {
+    const intValue = Number(this.curToken.literal);
+    const intLit = new IntegerLiteral(this.curToken, intValue);
+
+    return intLit
+  }
+
+  private parseIdentifier = (): Expression =>  {
+    return new Identifier(this.curToken, this.curToken.literal);
+  }
+
   private parseExpression(precedence: PrecedenceValue): Expression | null {
     const prefixFn = this.prefixParseFnSupplier();
 
@@ -122,7 +134,9 @@ export class Parser {
   private prefixParseFnSupplier()  {
     switch(this.curToken.type) {
       case TokenType.Ident:
-          return () => new Identifier(this.curToken, this.curToken.literal);
+          return this.parseIdentifier;
+      case TokenType.Int:
+          return this.parseIntegerLiteral;
       default:
           return null;
     }
