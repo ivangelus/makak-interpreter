@@ -9,4 +9,16 @@ export class ReturnStatement extends Statement {
   constructor(token: Token) {
     super(token);
   }
+
+  public toString(): string {
+    let output: string = '';
+    output += `${this.token.literal} `;
+
+    if (this.returnValue !== null) {
+      output += `${this.returnValue.toString()}`;
+    }
+    output += ';';
+
+    return output;
+  }
 }

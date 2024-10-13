@@ -10,4 +10,8 @@ export class Node {
   public tokenLiteral(): string {
     return this.token.literal;
   }
+
+  public toString(): string {
+    return 'string';
+  }
 }

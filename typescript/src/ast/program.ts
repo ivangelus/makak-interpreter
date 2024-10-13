@@ -11,4 +11,12 @@ export class Program extends Node {
   public appendStatement(s: Statement): void {
     this.statements.push(s);
   }
+
+  public toString(): string {
+    let output: string = '';
+    for (let i = 0; i <= this.statements.length; i++) {
+      output += this.statements[i]?.toString()
+    }
+    return output;
+  }
 }

@@ -5,6 +5,20 @@ import { Statement } from "../ast/statements/statement";
 import { LetStatement } from "../ast/statements/letStatement";
 import { Identifier } from "../ast/expressions/identifier";
 import { ReturnStatement } from "../ast/statements/returnStatement";
+import { ExpressionStatement } from "../ast/statements/expressionStatement";
+import { Expression } from "../ast/expressions/expression";
+
+export const Precedence = {
+  Lowest: 0,
+  Equals: 1, // ==
+  LessGreater: 2, // > or <
+  Sum: 3, // +
+  Product: 4, // *
+  Prefix: 5, // -X or !X
+  Call: 6, // myFunction(X)
+} as const;
+
+export type PrecedenceValue = (typeof Precedence)[keyof typeof Precedence];
 
 export class Parser {
   private curToken: Token;
@@ -42,7 +56,7 @@ export class Parser {
       case TokenType.Return:
         return this.parseReturnStatement();
       default:
-        return null;
+        return this.parseExpressionStatement();
     }
   }
 
@@ -79,6 +93,39 @@ export class Parser {
     }
 
     return statement;
+  }
+
+  private parseExpressionStatement(): ExpressionStatement {
+    const expStmt = new ExpressionStatement(this.curToken);
+
+    expStmt.setExpression(this.parseExpression(Precedence.Lowest))
+
+    if(this.peekTokenIs(TokenType.Semicolon)) {
+      this.nextToken();
+    }
+
+    return expStmt;
+  }
+
+  private parseExpression(precedence: PrecedenceValue): Expression | null {
+    const prefixFn = this.prefixParseFnSupplier();
+
+    if (prefixFn === null) {
+      return null;
+    }
+
+    const leftExp = prefixFn();
+
+    return leftExp;
+  }
+
+  private prefixParseFnSupplier()  {
+    switch(this.curToken.type) {
+      case TokenType.Ident:
+          return () => new Identifier(this.curToken, this.curToken.literal);
+      default:
+          return null;
+    }
   }
 
   private curTokenIs(t: TokenItem): boolean {

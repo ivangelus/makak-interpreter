@@ -19,4 +19,18 @@ export class LetStatement extends Statement {
   public getName(): Identifier {
     return this.name;
   }
+
+  public toString(): string {
+    let output: string = '';
+    output += `${this.token.literal} `;
+    output += `${this.name.toString()}`;
+    output += ' = ';
+
+    if (this.value && this.value !== null) {
+      output += `${this.value.toString()}`;
+    }
+    output += ';';
+
+    return output;
+  }
 }

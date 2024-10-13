@@ -74,9 +74,29 @@ describe("Parser", () => {
     for (let i = 0; i < testCases.length; i++) {
       const stmt = program.statements[i];
       expect(stmt.tokenLiteral()).toEqual("return");
+      // TODO
       // expect((stmt as ReturnStatement).getName().getValue()).toEqual(
       //   testCases[i].expectedIdentifier,
       // );
     }
   });
+
+  it('should parse identifier expressions', () => {
+    const input = 'foobar;';
+    const lexer = new Lexer(input);
+    const parser = new Parser(lexer);
+    const program = parser.parseProgram();
+
+    const errors = parser.getErrors();
+
+    expect(errors.length).toBe(0);
+
+    console.log(program.statements)
+
+    expect(program.statements.length).toEqual(1);
+    expect(program.statements[0].constructor.name).toEqual('ExpressionStatement');
+    // TODO
+    // @ts-ignore
+    expect(program.statements[0].expression.constructor.name).toEqual('Identifier');
+  })
 });
