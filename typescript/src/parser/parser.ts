@@ -8,6 +8,7 @@ import { ReturnStatement } from "../ast/statements/returnStatement";
 import { ExpressionStatement } from "../ast/statements/expressionStatement";
 import { Expression } from "../ast/expressions/expression";
 import { IntegerLiteral } from "../ast/expressions/integerLiteral";
+import { PrefixExpression } from "../ast/expressions/prefix";
 
 export const Precedence = {
   Lowest: 0,
@@ -123,6 +124,7 @@ export class Parser {
     const prefixFn = this.prefixParseFnSupplier();
 
     if (prefixFn === null) {
+      this.errors.push(`no prefix parse function for ${this.curToken.type} found`)
       return null;
     }
 
@@ -137,9 +139,23 @@ export class Parser {
           return this.parseIdentifier;
       case TokenType.Int:
           return this.parseIntegerLiteral;
+      case TokenType.Bang:
+          return this.parsePrefixExpression;
+      case TokenType.Minus:
+          return this.parsePrefixExpression;
       default:
           return null;
     }
+  }
+
+  private parsePrefixExpression = (): Expression => {
+    const prefixExpr = new PrefixExpression(this.curToken, this.curToken.literal);
+
+    this.nextToken();
+
+    prefixExpr.setRight(this.parseExpression(Precedence.Prefix))
+
+    return prefixExpr;
   }
 
   private curTokenIs(t: TokenItem): boolean {
