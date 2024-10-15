@@ -1,4 +1,5 @@
 import { Identifier } from "../../ast/expressions/identifier";
+import { InfixExpression } from "../../ast/expressions/infix";
 import { IntegerLiteral } from "../../ast/expressions/integerLiteral";
 import { PrefixExpression } from "../../ast/expressions/prefix";
 import { ExpressionStatement } from "../../ast/statements/expressionStatement";
@@ -31,7 +32,7 @@ describe("Parser", () => {
       const stmt = program.statements[i];
       expect(stmt.tokenLiteral()).toEqual("let");
       expect((stmt as LetStatement).getName().getValue()).toEqual(
-        testCases[i].expectedIdentifier,
+        testCases[i].expectedIdentifier
       );
     }
   });
@@ -47,7 +48,6 @@ describe("Parser", () => {
     const parser = new Parser(lexer);
 
     parser.parseProgram();
-
 
     // TODO added prefix error because it is not implemented needs to be removed once it is supporting all token types
     const errors = parser.getErrors();
@@ -89,8 +89,8 @@ describe("Parser", () => {
     }
   });
 
-  it('should parse identifier expressions', () => {
-    const input = 'foobar;';
+  it("should parse identifier expressions", () => {
+    const input = "foobar;";
     const lexer = new Lexer(input);
     const parser = new Parser(lexer);
     const program = parser.parseProgram();
@@ -100,12 +100,17 @@ describe("Parser", () => {
     expect(errors.length).toBe(0);
 
     expect(program.statements.length).toEqual(1);
-    expect(program.statements[0].constructor.name).toEqual('ExpressionStatement');
-    expect((program.statements[0] as unknown as ExpressionStatement).getExpression().constructor.name).toEqual('Identifier');
-  })
+    expect(program.statements[0].constructor.name).toEqual(
+      "ExpressionStatement"
+    );
+    expect(
+      (program.statements[0] as unknown as ExpressionStatement).getExpression()
+        .constructor.name
+    ).toEqual("Identifier");
+  });
 
-  it('should parse integer literal expressions', () => {
-    const input = '5;';
+  it("should parse integer literal expressions", () => {
+    const input = "5;";
     const lexer = new Lexer(input);
     const parser = new Parser(lexer);
     const program = parser.parseProgram();
@@ -115,61 +120,124 @@ describe("Parser", () => {
     expect(errors.length).toBe(0);
 
     expect(program.statements.length).toEqual(1);
-    expect(program.statements[0].constructor.name).toEqual('ExpressionStatement');
-    expect((program.statements[0] as unknown as ExpressionStatement).getExpression().constructor.name).toEqual('IntegerLiteral');
-    expect(((program.statements[0] as unknown as ExpressionStatement).getExpression() as unknown as IntegerLiteral).getValue()).toEqual(5);
-    expect(((program.statements[0] as unknown as ExpressionStatement).getExpression() as unknown as IntegerLiteral).getValue()).toEqual(5);
-  })
+    expect(program.statements[0].constructor.name).toEqual(
+      "ExpressionStatement"
+    );
+    expect(
+      (program.statements[0] as unknown as ExpressionStatement).getExpression()
+        .constructor.name
+    ).toEqual("IntegerLiteral");
+    expect(
+      (
+        (
+          program.statements[0] as unknown as ExpressionStatement
+        ).getExpression() as unknown as IntegerLiteral
+      ).getValue()
+    ).toEqual(5);
+    expect(
+      (
+        (
+          program.statements[0] as unknown as ExpressionStatement
+        ).getExpression() as unknown as IntegerLiteral
+      ).getValue()
+    ).toEqual(5);
+  });
 
-  describe('prefix operators', () => {
+  describe("prefix operators", () => {
     it('should parse "!" prefix operator', () => {
-      const input = '!5;';
+      const input = "!5;";
       const lexer = new Lexer(input);
       const parser = new Parser(lexer);
       const program = parser.parseProgram();
-  
+
       const errors = parser.getErrors();
-  
+
       expect(errors.length).toBe(0);
-  
+
       expect(program.statements.length).toEqual(1);
       const expStmt = program.statements[0] as unknown as ExpressionStatement;
-      expect(expStmt.constructor.name).toEqual('ExpressionStatement');
+      expect(expStmt.constructor.name).toEqual("ExpressionStatement");
 
       const prefixExp = expStmt.getExpression() as unknown as PrefixExpression;
-      expect(prefixExp.constructor.name).toEqual('PrefixExpression');
-      expect(prefixExp.getOperator()).toEqual('!');
+      expect(prefixExp.constructor.name).toEqual("PrefixExpression");
+      expect(prefixExp.getOperator()).toEqual("!");
 
       const prefixRigthExp = prefixExp.getRight() as unknown as IntegerLiteral;
       expect(prefixRigthExp.token.type).toEqual(TokenType.Int);
-      expect(prefixRigthExp.token.literal).toEqual('5');
+      expect(prefixRigthExp.token.literal).toEqual("5");
       expect(prefixRigthExp.getValue()).toEqual(5);
-    })
+    });
 
     // TODO a lot of duplication with "!" prefix test
     it('should parse "-" prefix operator', () => {
-      const input = '-15;';
+      const input = "-15;";
       const lexer = new Lexer(input);
       const parser = new Parser(lexer);
       const program = parser.parseProgram();
-  
+
       const errors = parser.getErrors();
-  
+
       expect(errors.length).toBe(0);
 
       expect(program.statements.length).toEqual(1);
 
       const expStmt = program.statements[0] as unknown as ExpressionStatement;
-      expect(expStmt.constructor.name).toEqual('ExpressionStatement');
+      expect(expStmt.constructor.name).toEqual("ExpressionStatement");
 
       const prefixExp = expStmt.getExpression() as unknown as PrefixExpression;
-      expect(prefixExp.constructor.name).toEqual('PrefixExpression');
-      expect(prefixExp.getOperator()).toEqual('-');
+      expect(prefixExp.constructor.name).toEqual("PrefixExpression");
+      expect(prefixExp.getOperator()).toEqual("-");
 
       const prefixRigthExp = prefixExp.getRight() as unknown as IntegerLiteral;
       expect(prefixRigthExp.token.type).toEqual(TokenType.Int);
-      expect(prefixRigthExp.token.literal).toEqual('15');
+      expect(prefixRigthExp.token.literal).toEqual("15");
       expect(prefixRigthExp.getValue()).toEqual(15);
-    })
-  })
+    });
+  });
+  
+  describe("infix operators", () => {
+    it.each([
+      ["5 + 5;", 5, "+", 5],
+      ["5 - 5;", 5, "-", 5],
+      ["5 * 5;", 5, "*", 5],
+      ["5 / 5;", 5, "/", 5],
+      ["5 > 5;", 5, ">", 5],
+      ["5 < 5;", 5, "<", 5],
+      ["5 == 5;", 5, "==", 5],
+      ["5 != 5;", 5, "!=", 5],
+    ])(
+      "should parse infix operator expressions",
+      (input, leftValue, operator, rightValue) => {
+        const lexer = new Lexer(input);
+        const parser = new Parser(lexer);
+        const program = parser.parseProgram();
+
+        const errors = parser.getErrors();
+
+        expect(errors.length).toBe(0);
+
+        expect(program.statements.length).toEqual(1);
+
+        const expStmt = program
+          .statements[0] as unknown as ExpressionStatement;
+        expect(expStmt.constructor.name).toEqual("ExpressionStatement");
+
+        const infixExp =
+          expStmt.getExpression() as unknown as InfixExpression;
+        expect(infixExp.constructor.name).toEqual("InfixExpression");
+        expect(infixExp.getOperator()).toEqual(operator);
+
+        const infixLeftExp = infixExp.getLeft() as unknown as IntegerLiteral;
+        expect(infixLeftExp.token.type).toEqual(TokenType.Int);
+        expect(infixLeftExp.token.literal).toEqual(String(leftValue));
+        expect(infixLeftExp.getValue()).toEqual(leftValue);
+
+        const infixRigthExp =
+          infixExp.getRight() as unknown as IntegerLiteral;
+        expect(infixRigthExp.token.type).toEqual(TokenType.Int);
+        expect(infixLeftExp.token.literal).toEqual(String(rightValue));
+        expect(infixRigthExp.getValue()).toEqual(rightValue);
+      }
+    );
+  });
 });
