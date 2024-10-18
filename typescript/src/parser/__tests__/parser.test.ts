@@ -1,10 +1,8 @@
-import { Identifier } from "../../ast/expressions/identifier";
 import { InfixExpression } from "../../ast/expressions/infix";
 import { IntegerLiteral } from "../../ast/expressions/integerLiteral";
 import { PrefixExpression } from "../../ast/expressions/prefix";
 import { ExpressionStatement } from "../../ast/statements/expressionStatement";
 import { LetStatement } from "../../ast/statements/letStatement";
-import { ReturnStatement } from "../../ast/statements/returnStatement";
 import { Lexer } from "../../lexer/lexer";
 import { TokenType } from "../../token/token";
 import { Parser } from "../parser";
@@ -194,7 +192,7 @@ describe("Parser", () => {
       expect(prefixRigthExp.getValue()).toEqual(15);
     });
   });
-  
+
   describe("infix operators", () => {
     it.each([
       ["5 + 5;", 5, "+", 5],
@@ -218,12 +216,10 @@ describe("Parser", () => {
 
         expect(program.statements.length).toEqual(1);
 
-        const expStmt = program
-          .statements[0] as unknown as ExpressionStatement;
+        const expStmt = program.statements[0] as unknown as ExpressionStatement;
         expect(expStmt.constructor.name).toEqual("ExpressionStatement");
 
-        const infixExp =
-          expStmt.getExpression() as unknown as InfixExpression;
+        const infixExp = expStmt.getExpression() as unknown as InfixExpression;
         expect(infixExp.constructor.name).toEqual("InfixExpression");
         expect(infixExp.getOperator()).toEqual(operator);
 
@@ -232,12 +228,30 @@ describe("Parser", () => {
         expect(infixLeftExp.token.literal).toEqual(String(leftValue));
         expect(infixLeftExp.getValue()).toEqual(leftValue);
 
-        const infixRigthExp =
-          infixExp.getRight() as unknown as IntegerLiteral;
+        const infixRigthExp = infixExp.getRight() as unknown as IntegerLiteral;
         expect(infixRigthExp.token.type).toEqual(TokenType.Int);
         expect(infixLeftExp.token.literal).toEqual(String(rightValue));
         expect(infixRigthExp.getValue()).toEqual(rightValue);
       }
     );
+  });
+
+  describe("parsing expressions", () => {
+    it.each([
+      ["-a * b", "((-a) * b)"],
+      ["!-a;", "(!(-a))"],
+      ["a + b + c;", "((a + b) + c)"],
+      ["a + b - c;", "((a + b) - c)"],
+      ["a * b * c;", "((a * b) * c)"],
+    ])("should parse properly", (input, stringified) => {
+      const lexer = new Lexer(input);
+      const parser = new Parser(lexer);
+      const program = parser.parseProgram();
+
+      const errors = parser.getErrors();
+
+      expect(errors.length).toBe(0);
+      expect(program.toString()).toEqual(stringified);
+    });
   });
 });

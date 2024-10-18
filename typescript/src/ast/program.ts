@@ -14,7 +14,7 @@ export class Program extends Node {
 
   public toString(): string {
     let output: string = '';
-    for (let i = 0; i <= this.statements.length; i++) {
+    for (let i = 0; i < this.statements.length; i++) {
       output += this.statements[i]?.toString()
     }
     return output;

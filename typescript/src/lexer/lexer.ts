@@ -49,7 +49,7 @@ export class Lexer {
   private readIdentifier(): string {
     const position = this.position;
 
-    while (this.isLetter(this.input[this.position])) {
+    while (this.isLetter(this.ch)) {
         this.readChar();
     }
 
@@ -59,7 +59,7 @@ export class Lexer {
   private readNumber(): string {
     const position = this.position;
 
-    while (this.isNumber(this.input[this.position])) {
+    while (this.isNumber(this.ch)) {
         this.readChar();
     }
 
