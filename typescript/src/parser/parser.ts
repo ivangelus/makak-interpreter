@@ -137,6 +137,17 @@ export class Parser {
     return new Boolean(this.curToken, this.curTokenIs(TokenType.True));
   };
 
+  private parseGroupedExpression = (): Expression | null => {
+    this.nextToken();
+    const exp = this.parseExpression(Precedence.Lowest);
+
+    if(!this.expectPeek(TokenType.RParen)) {
+      return null;
+    }
+
+    return exp;
+  }
+ 
   private parseExpression(precedence: PrecedenceValue): Expression | null {
     const prefixFn = this.prefixParseFnSupplier();
 
@@ -177,6 +188,8 @@ export class Parser {
         return this.parseBoolean;
       case TokenType.False:
         return this.parseBoolean;
+      case TokenType.LParen:
+        return this.parseGroupedExpression;
       default:
         return null;
     }

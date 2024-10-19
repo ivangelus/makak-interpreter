@@ -1,3 +1,6 @@
+import { Boolean } from "../../ast/expressions/boolean";
+import { Expression } from "../../ast/expressions/expression";
+import { Identifier } from "../../ast/expressions/identifier";
 import { InfixExpression } from "../../ast/expressions/infix";
 import { IntegerLiteral } from "../../ast/expressions/integerLiteral";
 import { PrefixExpression } from "../../ast/expressions/prefix";
@@ -142,55 +145,36 @@ describe("Parser", () => {
   });
 
   describe("prefix operators", () => {
-    it('should parse "!" prefix operator', () => {
-      const input = "!5;";
-      const lexer = new Lexer(input);
-      const parser = new Parser(lexer);
-      const program = parser.parseProgram();
+    it.each([
+      ["!5;", "!", 5],
+      ["-15;", "-", 15],
+      ["!true;", "!", true],
+      ["!false;", "!", false],
+    ])(
+      "should parse infix operator expressions",
+      (input, operator, rightValue) => {
+        const lexer = new Lexer(input);
+        const parser = new Parser(lexer);
+        const program = parser.parseProgram();
 
-      const errors = parser.getErrors();
+        const errors = parser.getErrors();
 
-      expect(errors.length).toBe(0);
+        expect(errors.length).toBe(0);
 
-      expect(program.statements.length).toEqual(1);
-      const expStmt = program.statements[0] as unknown as ExpressionStatement;
-      expect(expStmt.constructor.name).toEqual("ExpressionStatement");
+        expect(program.statements.length).toEqual(1);
 
-      const prefixExp = expStmt.getExpression() as unknown as PrefixExpression;
-      expect(prefixExp.constructor.name).toEqual("PrefixExpression");
-      expect(prefixExp.getOperator()).toEqual("!");
+        const expStmt = program.statements[0] as unknown as ExpressionStatement;
+        expect(expStmt.constructor.name).toEqual("ExpressionStatement");
 
-      const prefixRigthExp = prefixExp.getRight() as unknown as IntegerLiteral;
-      expect(prefixRigthExp.token.type).toEqual(TokenType.Int);
-      expect(prefixRigthExp.token.literal).toEqual("5");
-      expect(prefixRigthExp.getValue()).toEqual(5);
-    });
+        const prefixExp =
+          expStmt.getExpression() as unknown as PrefixExpression;
+        expect(prefixExp.constructor.name).toEqual("PrefixExpression");
+        expect(prefixExp.getOperator()).toEqual(operator);
 
-    // TODO a lot of duplication with "!" prefix test
-    it('should parse "-" prefix operator', () => {
-      const input = "-15;";
-      const lexer = new Lexer(input);
-      const parser = new Parser(lexer);
-      const program = parser.parseProgram();
-
-      const errors = parser.getErrors();
-
-      expect(errors.length).toBe(0);
-
-      expect(program.statements.length).toEqual(1);
-
-      const expStmt = program.statements[0] as unknown as ExpressionStatement;
-      expect(expStmt.constructor.name).toEqual("ExpressionStatement");
-
-      const prefixExp = expStmt.getExpression() as unknown as PrefixExpression;
-      expect(prefixExp.constructor.name).toEqual("PrefixExpression");
-      expect(prefixExp.getOperator()).toEqual("-");
-
-      const prefixRigthExp = prefixExp.getRight() as unknown as IntegerLiteral;
-      expect(prefixRigthExp.token.type).toEqual(TokenType.Int);
-      expect(prefixRigthExp.token.literal).toEqual("15");
-      expect(prefixRigthExp.getValue()).toEqual(15);
-    });
+        const prefixRightExp = prefixExp.getRight();
+        testLiteralExpression(prefixRightExp, rightValue);
+      }
+    );
   });
 
   describe("infix operators", () => {
@@ -203,6 +187,9 @@ describe("Parser", () => {
       ["5 < 5;", 5, "<", 5],
       ["5 == 5;", 5, "==", 5],
       ["5 != 5;", 5, "!=", 5],
+      ["true == true", true, "==", true],
+      ["true != false", true, "!=", false],
+      ["false == false", false, "==", false],
     ])(
       "should parse infix operator expressions",
       (input, leftValue, operator, rightValue) => {
@@ -223,15 +210,11 @@ describe("Parser", () => {
         expect(infixExp.constructor.name).toEqual("InfixExpression");
         expect(infixExp.getOperator()).toEqual(operator);
 
-        const infixLeftExp = infixExp.getLeft() as unknown as IntegerLiteral;
-        expect(infixLeftExp.token.type).toEqual(TokenType.Int);
-        expect(infixLeftExp.token.literal).toEqual(String(leftValue));
-        expect(infixLeftExp.getValue()).toEqual(leftValue);
+        const infixLeftExp = infixExp.getLeft();
+        testLiteralExpression(infixLeftExp, leftValue);
 
-        const infixRigthExp = infixExp.getRight() as unknown as IntegerLiteral;
-        expect(infixRigthExp.token.type).toEqual(TokenType.Int);
-        expect(infixLeftExp.token.literal).toEqual(String(rightValue));
-        expect(infixRigthExp.getValue()).toEqual(rightValue);
+        const infixRigthExp = infixExp.getRight();
+        testLiteralExpression(infixRigthExp, rightValue);
       }
     );
   });
@@ -243,6 +226,15 @@ describe("Parser", () => {
       ["a + b + c;", "((a + b) + c)"],
       ["a + b - c;", "((a + b) - c)"],
       ["a * b * c;", "((a * b) * c)"],
+      ["true", "true"],
+      ["false", "false"],
+      ["3 > 5 == false", "((3 > 5) == false)"],
+      ["3 < 5 == true", "((3 < 5) == true)"],
+      ["1 + (2 + 3) + 4", "((1 + (2 + 3)) + 4)"],
+      ["(5 + 5) * 2", "((5 + 5) * 2)"],
+      ["2 / (5 + 5)", "(2 / (5 + 5))"],
+      ["-(5 + 5)", "(-(5 + 5))"],
+      ["!(true == true)", "(!(true == true))"],
     ])("should parse properly", (input, stringified) => {
       const lexer = new Lexer(input);
       const parser = new Parser(lexer);
@@ -256,24 +248,25 @@ describe("Parser", () => {
   });
 });
 
-
 function testLiteralExpression(exp: Expression, value: any): void {
-	switch (typeof value) {
-	case 'number':
-		return testIntegerLiteral(exp as unknown as IntegerLiteral, value)
-	case 'string':
-		return testIdentifier(exp as unknown as Identifier, value)
-	case 'boolean':
-		return testBooleanLiteral(exp as unknown as Boolean, value)
-	}
+  switch (typeof value) {
+    case "number":
+      return testIntegerLiteral(exp as unknown as IntegerLiteral, value);
+    case "string":
+      return testIdentifier(exp as unknown as Identifier, value);
+    case "boolean":
+      return testBooleanLiteral(exp as unknown as Boolean, value);
+  }
 }
 
-function testIntegerLiteral(integerLiteral: IntegerLiteral, value: number): void {
+function testIntegerLiteral(
+  integerLiteral: IntegerLiteral,
+  value: number
+): void {
   expect(integerLiteral.constructor.name).toEqual("IntegerLiteral");
   expect(integerLiteral.token.type).toEqual(TokenType.Int);
   expect(integerLiteral.token.literal).toEqual(String(value));
   expect(integerLiteral.getValue()).toEqual(value);
-
 }
 
 function testIdentifier(identifier: Identifier, value: string): void {
