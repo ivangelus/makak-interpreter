@@ -255,3 +255,42 @@ describe("Parser", () => {
     });
   });
 });
+
+
+function testLiteralExpression(exp: Expression, value: any): void {
+	switch (typeof value) {
+	case 'number':
+		return testIntegerLiteral(exp as unknown as IntegerLiteral, value)
+	case 'string':
+		return testIdentifier(exp as unknown as Identifier, value)
+	case 'boolean':
+		return testBooleanLiteral(exp as unknown as Boolean, value)
+	}
+}
+
+function testIntegerLiteral(integerLiteral: IntegerLiteral, value: number): void {
+  expect(integerLiteral.constructor.name).toEqual("IntegerLiteral");
+  expect(integerLiteral.token.type).toEqual(TokenType.Int);
+  expect(integerLiteral.token.literal).toEqual(String(value));
+  expect(integerLiteral.getValue()).toEqual(value);
+
+}
+
+function testIdentifier(identifier: Identifier, value: string): void {
+  expect(identifier.constructor.name).toEqual("Identifier");
+  expect(identifier.token.type).toEqual(TokenType.Ident);
+  expect(identifier.getValue()).toEqual(value);
+}
+
+function testBooleanLiteral(booleanLiteral: Boolean, value: boolean): void {
+  expect(booleanLiteral.constructor.name).toEqual("Boolean");
+  expect(booleanLiteral.getValue()).toEqual(value);
+}
+
+// function testInfixExpression(exp: InfixExpression, left: Expression, operator: string, right: Expression): void {
+//   expect(exp.constructor.name).toEqual("InfixExpression");
+
+// 	testLiteralExpression(exp.getLeft(), left);
+//   expect(exp.getOperator()).toEqual(operator);
+//   testLiteralExpression(exp.getRight(), right);
+// }

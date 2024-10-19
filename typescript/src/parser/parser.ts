@@ -10,6 +10,7 @@ import { Expression } from "../ast/expressions/expression";
 import { IntegerLiteral } from "../ast/expressions/integerLiteral";
 import { PrefixExpression } from "../ast/expressions/prefix";
 import { InfixExpression } from "../ast/expressions/infix";
+import { Boolean } from "../ast/expressions/boolean";
 
 const Precedence = {
   Lowest: 0,
@@ -132,6 +133,10 @@ export class Parser {
     return new Identifier(this.curToken, this.curToken.literal);
   };
 
+  private parseBoolean = (): Expression => {
+    return new Boolean(this.curToken, this.curTokenIs(TokenType.True));
+  };
+
   private parseExpression(precedence: PrecedenceValue): Expression | null {
     const prefixFn = this.prefixParseFnSupplier();
 
@@ -168,6 +173,10 @@ export class Parser {
         return this.parsePrefixExpression;
       case TokenType.Minus:
         return this.parsePrefixExpression;
+      case TokenType.True:
+        return this.parseBoolean;
+      case TokenType.False:
+        return this.parseBoolean;
       default:
         return null;
     }
