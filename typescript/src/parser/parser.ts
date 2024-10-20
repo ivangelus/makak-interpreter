@@ -11,6 +11,8 @@ import { IntegerLiteral } from "../ast/expressions/integerLiteral";
 import { PrefixExpression } from "../ast/expressions/prefix";
 import { InfixExpression } from "../ast/expressions/infix";
 import { Boolean } from "../ast/expressions/boolean";
+import { IfExpression } from "../ast/expressions/ifExpression";
+import { BlockStatement } from "../ast/statements/blockStatement";
 
 const Precedence = {
   Lowest: 0,
@@ -141,18 +143,71 @@ export class Parser {
     this.nextToken();
     const exp = this.parseExpression(Precedence.Lowest);
 
-    if(!this.expectPeek(TokenType.RParen)) {
+    if (!this.expectPeek(TokenType.RParen)) {
       return null;
     }
 
     return exp;
+  };
+
+  public parseBlockStatement(): BlockStatement {
+    const blockStatement = new BlockStatement(this.curToken);
+    this.nextToken();
+
+    while (
+      !this.curTokenIs(TokenType.RBrace) &&
+      !this.curTokenIs(TokenType.Eof)
+    ) {
+      const stmt = this.parseStatement();
+      if (stmt) {
+        blockStatement.appendStatement(stmt);
+      }
+      this.nextToken();
+    }
+
+    return blockStatement;
   }
- 
+
+  private parseIfExpression = (): Expression | null => {
+    const expression = new IfExpression(this.curToken);
+
+    if (!this.expectPeek(TokenType.LParen)) {
+      return null;
+    }
+
+    this.nextToken();
+    expression.setCondition(this.parseExpression(Precedence.Lowest));
+
+    if (!this.expectPeek(TokenType.RParen)) {
+      return null;
+    }
+
+    if (!this.expectPeek(TokenType.LBrace)) {
+      return null;
+    }
+
+    expression.setConsequence(this.parseBlockStatement());
+
+    if (this.peekTokenIs(TokenType.Else)) {
+      this.nextToken();
+
+      if (!this.expectPeek(TokenType.LBrace)) {
+        return null;
+      }
+
+      expression.setAlternative(this.parseBlockStatement());
+    }
+
+    return expression;
+  };
+
   private parseExpression(precedence: PrecedenceValue): Expression | null {
     const prefixFn = this.prefixParseFnSupplier();
 
     if (prefixFn === null) {
-      this.errors.push(`no prefix parse function for ${this.curToken.type} found`)
+      this.errors.push(
+        `no prefix parse function for ${this.curToken.type} found`
+      );
       return null;
     }
 
@@ -190,6 +245,8 @@ export class Parser {
         return this.parseBoolean;
       case TokenType.LParen:
         return this.parseGroupedExpression;
+      case TokenType.If:
+        return this.parseIfExpression;
       default:
         return null;
     }
