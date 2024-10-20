@@ -13,6 +13,7 @@ import { InfixExpression } from "../ast/expressions/infix";
 import { Boolean } from "../ast/expressions/boolean";
 import { IfExpression } from "../ast/expressions/ifExpression";
 import { BlockStatement } from "../ast/statements/blockStatement";
+import { FunctionLiteral } from "../ast/expressions/functionLiteral";
 
 const Precedence = {
   Lowest: 0,
@@ -201,6 +202,49 @@ export class Parser {
     return expression;
   };
 
+  private parseFunctionParams(): Identifier[] {
+    const identifiers: Identifier[] = [];
+
+    if (this.peekTokenIs(TokenType.RParen)) {
+      this.nextToken();
+      return identifiers;
+    }
+    this.nextToken();
+
+    const ident = new Identifier(this.curToken, this.curToken.literal);
+    identifiers.push(ident);
+    
+    while(this.peekTokenIs(TokenType.Comma)) {
+      this.nextToken();
+      this.nextToken();
+      const ident = new Identifier(this.curToken, this.curToken.literal);
+      identifiers.push(ident);
+    }
+
+    if (!this.expectPeek(TokenType.RParen)) {
+      return null;
+    }
+    return identifiers;
+  };
+
+  private parseFunctionLiteral = (): Expression | null => {
+    const functionLiteral = new FunctionLiteral(this.curToken);
+
+    if (!this.expectPeek(TokenType.LParen)) {
+      return null;
+    }
+
+    functionLiteral.setParams(this.parseFunctionParams());
+
+    if (!this.expectPeek(TokenType.LBrace)) {
+      return null;
+    }
+
+    functionLiteral.setBody(this.parseBlockStatement());
+
+    return functionLiteral;
+  };
+
   private parseExpression(precedence: PrecedenceValue): Expression | null {
     const prefixFn = this.prefixParseFnSupplier();
 
@@ -247,6 +291,8 @@ export class Parser {
         return this.parseGroupedExpression;
       case TokenType.If:
         return this.parseIfExpression;
+      case TokenType.Function:
+        return this.parseFunctionLiteral;
       default:
         return null;
     }

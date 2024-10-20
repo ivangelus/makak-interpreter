@@ -1,5 +1,6 @@
 import { Boolean } from "../../ast/expressions/boolean";
 import { Expression } from "../../ast/expressions/expression";
+import { FunctionLiteral } from "../../ast/expressions/functionLiteral";
 import { Identifier } from "../../ast/expressions/identifier";
 import { IfExpression } from "../../ast/expressions/ifExpression";
 import { InfixExpression } from "../../ast/expressions/infix";
@@ -7,6 +8,7 @@ import { IntegerLiteral } from "../../ast/expressions/integerLiteral";
 import { PrefixExpression } from "../../ast/expressions/prefix";
 import { ExpressionStatement } from "../../ast/statements/expressionStatement";
 import { LetStatement } from "../../ast/statements/letStatement";
+import { ReturnStatement } from "../../ast/statements/returnStatement";
 import { Lexer } from "../../lexer/lexer";
 import { TokenType } from "../../token/token";
 import { Parser } from "../parser";
@@ -249,9 +251,9 @@ describe("Parser", () => {
   });
 });
 
-describe('if expressions', () => {
-  it('should parse if expression', () => {
-    const input = 'if (x < y) { x }';
+describe("if expressions", () => {
+  it("should parse if expression", () => {
+    const input = "if (x < y) { x }";
     const lexer = new Lexer(input);
     const parser = new Parser(lexer);
     const program = parser.parseProgram();
@@ -266,21 +268,26 @@ describe('if expressions', () => {
 
     const ifExp = expStmt.getExpression() as unknown as IfExpression;
     expect(ifExp.constructor.name).toEqual("IfExpression");
-    testInfixExpression(ifExp.getCondition() as unknown as InfixExpression, 'x', '<', 'y')
+    testInfixExpression(
+      ifExp.getCondition() as unknown as InfixExpression,
+      "x",
+      "<",
+      "y"
+    );
 
     const consequence = ifExp.getConsequence();
-    expect(consequence.constructor.name).toEqual('BlockStatement');
+    expect(consequence.constructor.name).toEqual("BlockStatement");
     const consStmts = consequence.getStatements();
     expect(consStmts.length).toEqual(1);
-    expect(consStmts[0].constructor.name).toEqual('ExpressionStatement');
-    const childExpStmt = consStmts[0] as unknown as ExpressionStatement
-    testIdentifier(childExpStmt.getExpression() as unknown as Identifier, 'x')
+    expect(consStmts[0].constructor.name).toEqual("ExpressionStatement");
+    const childExpStmt = consStmts[0] as unknown as ExpressionStatement;
+    testIdentifier(childExpStmt.getExpression() as unknown as Identifier, "x");
 
     expect(ifExp.getAlternative()).toEqual(null);
   });
 
-  it('should parse if/else expression', () => {
-    const input = 'if (x < y) { x } else { y }';
+  it("should parse if/else expression", () => {
+    const input = "if (x < y) { x } else { y }";
     const lexer = new Lexer(input);
     const parser = new Parser(lexer);
     const program = parser.parseProgram();
@@ -293,28 +300,92 @@ describe('if expressions', () => {
     const expStmt = program.statements[0] as unknown as ExpressionStatement;
     expect(expStmt.constructor.name).toEqual("ExpressionStatement");
 
-
     const ifExp = expStmt.getExpression() as unknown as IfExpression;
     expect(ifExp.constructor.name).toEqual("IfExpression");
-    testInfixExpression(ifExp.getCondition() as unknown as InfixExpression, 'x', '<', 'y');
+    testInfixExpression(
+      ifExp.getCondition() as unknown as InfixExpression,
+      "x",
+      "<",
+      "y"
+    );
 
     const consequence = ifExp.getConsequence();
-    expect(consequence.constructor.name).toEqual('BlockStatement');
+    expect(consequence.constructor.name).toEqual("BlockStatement");
     const consStmts = consequence.getStatements();
     expect(consStmts.length).toEqual(1);
-    expect(consStmts[0].constructor.name).toEqual('ExpressionStatement');
-    const childConsStmt = consStmts[0] as unknown as ExpressionStatement
-    testIdentifier(childConsStmt.getExpression() as unknown as Identifier, 'x')
+    expect(consStmts[0].constructor.name).toEqual("ExpressionStatement");
+    const childConsStmt = consStmts[0] as unknown as ExpressionStatement;
+    testIdentifier(childConsStmt.getExpression() as unknown as Identifier, "x");
 
     const alternative = ifExp.getAlternative();
-    expect(alternative.constructor.name).toEqual('BlockStatement');
+    expect(alternative.constructor.name).toEqual("BlockStatement");
     const altStmts = alternative.getStatements();
     expect(altStmts.length).toEqual(1);
-    expect(altStmts[0].constructor.name).toEqual('ExpressionStatement');
-    const childValStmt = altStmts[0] as unknown as ExpressionStatement
-    testIdentifier(childValStmt.getExpression() as unknown as Identifier, 'y')
+    expect(altStmts[0].constructor.name).toEqual("ExpressionStatement");
+    const childValStmt = altStmts[0] as unknown as ExpressionStatement;
+    testIdentifier(childValStmt.getExpression() as unknown as Identifier, "y");
   });
-})
+});
+
+describe("function literals", () => {
+  it("should parse function literals", () => {
+    const input = "fn (x, y) { x + y; }";
+    const lexer = new Lexer(input);
+    const parser = new Parser(lexer);
+    const program = parser.parseProgram();
+    const errors = parser.getErrors();
+
+    expect(errors.length).toBe(0);
+    const statements = program.statements;
+    expect(statements.length).toBe(1);
+
+    const expStmt = program.statements[0] as unknown as ExpressionStatement;
+    expect(expStmt.constructor.name).toEqual("ExpressionStatement");
+
+    const fnExp = expStmt.getExpression() as unknown as FunctionLiteral;
+    expect(fnExp.constructor.name).toEqual("FunctionLiteral");
+
+    const params = fnExp.getParams();
+    expect(params.length).toBe(2);
+
+    testLiteralExpression(params[0], "x");
+    testLiteralExpression(params[1], "y");
+
+    const body = fnExp.getBody();
+    expect(body.constructor.name).toEqual("BlockStatement");
+    const bodyStmts = body.getStatements();
+    expect(bodyStmts.length).toEqual(1);
+    expect(bodyStmts[0].constructor.name).toEqual("ExpressionStatement");
+    const childBodyStmt = bodyStmts[0] as unknown as ExpressionStatement;
+    testInfixExpression(
+      childBodyStmt.getExpression() as unknown as InfixExpression,
+      "x",
+      "+",
+      "y"
+    );
+  });
+
+  it.each([
+    ["fn() {};", []],
+    ["fn(x) {};", ["x"]],
+    ["fn(x, y, z) {};", ["x", "y", "z"]],
+  ])("should parse fn params properly", (input, expectedParams) => {
+    const lexer = new Lexer(input);
+    const parser = new Parser(lexer);
+    const program = parser.parseProgram();
+    const errors = parser.getErrors();
+
+    const stmt = program.statements[0] as unknown as ExpressionStatement;
+    const funcLit = stmt.getExpression() as unknown as FunctionLiteral;
+
+    const params = funcLit.getParams();
+    expect(params.length).toBe(expectedParams.length);
+
+    for (let i = 0; i < params.length; i++) {
+      testLiteralExpression(params[i], expectedParams[i]);
+    }
+  });
+});
 
 function testLiteralExpression(exp: Expression, value: any): void {
   switch (typeof value) {
@@ -348,10 +419,15 @@ function testBooleanLiteral(booleanLiteral: Boolean, value: boolean): void {
   expect(booleanLiteral.getValue()).toEqual(value);
 }
 
-function testInfixExpression(exp: InfixExpression, left: string, operator: string, right: string): void {
+function testInfixExpression(
+  exp: InfixExpression,
+  left: string,
+  operator: string,
+  right: string
+): void {
   expect(exp.constructor.name).toEqual("InfixExpression");
 
-	testLiteralExpression(exp.getLeft(), left);
+  testLiteralExpression(exp.getLeft(), left);
   expect(exp.getOperator()).toEqual(operator);
   testLiteralExpression(exp.getRight(), right);
 }
