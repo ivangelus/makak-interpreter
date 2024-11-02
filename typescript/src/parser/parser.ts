@@ -14,6 +14,7 @@ import { Boolean } from "../ast/expressions/boolean";
 import { IfExpression } from "../ast/expressions/ifExpression";
 import { BlockStatement } from "../ast/statements/blockStatement";
 import { FunctionLiteral } from "../ast/expressions/functionLiteral";
+import { CallExpression } from "../ast/expressions/callExpression";
 
 const Precedence = {
   Lowest: 0,
@@ -34,6 +35,7 @@ const precedenceTable = {
   [TokenType.Minus]: Precedence.Sum,
   [TokenType.Slash]: Precedence.Product,
   [TokenType.Asterisk]: Precedence.Product,
+  [TokenType.LParen]: Precedence.Call,
 } as unknown as Record<TokenItem, PrecedenceValue>;
 
 export type PrecedenceValue = (typeof Precedence)[keyof typeof Precedence];
@@ -316,6 +318,8 @@ export class Parser {
         return this.parseInfixExpression;
       case TokenType.GT:
         return this.parseInfixExpression;
+      case TokenType.LParen:
+        return this.parseCallExpression;
       default:
         return null;
     }
@@ -333,6 +337,37 @@ export class Parser {
 
     return prefixExpr;
   };
+
+  private parseCallExpression = (fn: Expression): Expression => {
+    const exp = new CallExpression(this.curToken, fn);
+    const args = this.parseCallArgs();
+    exp.setArgs(args);
+    return exp;
+  }
+
+  private parseCallArgs(): Expression[] {
+    const args: Expression[] = [];
+
+    if (this.peekTokenIs(TokenType.RParen)) {
+        this.nextToken()
+        return args
+    }
+
+    this.nextToken()
+    args.push(this.parseExpression(Precedence.Lowest))
+
+    while (this.peekTokenIs(TokenType.Comma)) {
+        this.nextToken()
+        this.nextToken()
+        args.push(this.parseExpression(Precedence.Lowest))
+    }
+
+    if (!this.expectPeek(TokenType.RParen)) {
+        return null
+    }
+
+    return args
+}
 
   private parseInfixExpression = (left: Expression): Expression => {
     const infixExpr = new InfixExpression(

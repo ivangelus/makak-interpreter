@@ -1,4 +1,5 @@
 import { Boolean } from "../../ast/expressions/boolean";
+import { CallExpression } from "../../ast/expressions/callExpression";
 import { Expression } from "../../ast/expressions/expression";
 import { FunctionLiteral } from "../../ast/expressions/functionLiteral";
 import { Identifier } from "../../ast/expressions/identifier";
@@ -238,6 +239,12 @@ describe("Parser", () => {
       ["2 / (5 + 5)", "(2 / (5 + 5))"],
       ["-(5 + 5)", "(-(5 + 5))"],
       ["!(true == true)", "(!(true == true))"],
+      ["a + add(b * c) + d", "((a + add((b * c))) + d)"],
+      [
+        "add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+        "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
+      ],
+      ["add(a + b + c * d / f + g)", "add((((a + b) + ((c * d) / f)) + g))"],
     ])("should parse properly", (input, stringified) => {
       const lexer = new Lexer(input);
       const parser = new Parser(lexer);
@@ -387,6 +394,35 @@ describe("function literals", () => {
   });
 });
 
+describe("function literals", () => {
+  it("should parse function literals", () => {
+    const input = "add(1, 2 * 3, 4 + 5);";
+    const lexer = new Lexer(input);
+    const parser = new Parser(lexer);
+    const program = parser.parseProgram();
+    const errors = parser.getErrors();
+
+    expect(errors.length).toBe(0);
+    const statements = program.statements;
+    expect(statements.length).toBe(1);
+
+    const expStmt = program.statements[0] as unknown as ExpressionStatement;
+    expect(expStmt.constructor.name).toEqual("ExpressionStatement");
+
+    const callExp = expStmt.getExpression() as unknown as CallExpression;
+    expect(callExp.constructor.name).toEqual("CallExpression");
+
+    const args = callExp.getArgs();
+    expect(args.length).toBe(3);
+
+    testLiteralExpression(args[0], 1);
+    testIdentifier(callExp.getFunction() as unknown as Identifier, "add");
+
+    testInfixExpression(args[1] as unknown as InfixExpression, 2, "*", 3);
+    testInfixExpression(args[2] as unknown as InfixExpression, 4, "+", 5);
+  });
+});
+
 function testLiteralExpression(exp: Expression, value: any): void {
   switch (typeof value) {
     case "number":
@@ -421,9 +457,9 @@ function testBooleanLiteral(booleanLiteral: Boolean, value: boolean): void {
 
 function testInfixExpression(
   exp: InfixExpression,
-  left: string,
+  left: string | number,
   operator: string,
-  right: string
+  right: string | number
 ): void {
   expect(exp.constructor.name).toEqual("InfixExpression");
 
