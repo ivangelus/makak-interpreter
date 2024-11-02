@@ -21,4 +21,8 @@ export class ReturnStatement extends Statement {
 
     return output;
   }
+
+  public setReturnValue(value: Expression): void {
+    this.returnValue = value;
+  }
 }

@@ -1,7 +1,7 @@
 import { Lexer } from "../../lexer/lexer";
 import { Parser } from "../../parser/parser";
 
-describe.skip('ast', () => {
+describe('ast', () => {
     describe('program', () => {
         it('should have utility toString function', () => {
             const input = "let myVar = anotherVar;";

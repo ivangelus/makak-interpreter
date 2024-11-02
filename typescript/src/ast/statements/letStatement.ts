@@ -16,6 +16,10 @@ export class LetStatement extends Statement {
     this.name = identifier;
   }
 
+  public setValue(v: Expression): void {
+    this.value = v;
+  }
+
   public getName(): Identifier {
     return this.name;
   }
