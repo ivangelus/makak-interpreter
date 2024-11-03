@@ -1,6 +1,7 @@
 import readline from "node:readline";
 import { Lexer } from "../lexer/lexer";
 import { Parser } from "../parser/parser";
+import { evaluate } from "../evaluator/evaluator";
 
 const MONKEY_FACE = `            __,__
    .--.  .-"     "-.  .--.
@@ -33,8 +34,11 @@ rl.on("line", (input: any) => {
       printParserErrors(errors);
     }
 
-    console.log(program.toString());
-    console.log("\n");
+    const evaluated = evaluate(program);
+    if (evaluated) {
+        console.log(evaluated.inspect());
+        console.log("\n");
+    }
   }
   rl.prompt();
 });
