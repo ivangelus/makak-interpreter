@@ -39,12 +39,21 @@ export class MonkeyInteger extends ValueObject {
 export class MonkeyBoolean extends ValueObject {
     value: boolean;
 
+    constructor(value: boolean) {
+        super();
+        this.value = value;
+    }
+
     public inspect(): string {
         return this.value.toString();
     }
 
     public getType(): ValueObjectType {
         return BOOLEAN_OBJECT;
+    }
+
+    public getValue(): boolean {
+        return this.value;
     }
 }
 

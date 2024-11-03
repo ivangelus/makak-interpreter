@@ -1,5 +1,5 @@
 import { Lexer } from "../../lexer/lexer";
-import { MonkeyInteger, ValueObject } from "../../object/valueObject";
+import { MonkeyBoolean, MonkeyInteger, ValueObject } from "../../object/valueObject";
 import { Parser } from "../../parser/parser";
 import { evaluate } from "../evaluator";
 
@@ -10,6 +10,14 @@ describe("Evaluator", () => {
   ])("should evaluate integer literals", (input, output) => {
     const evaluated = testEval(input);
     testIntegerObject(evaluated, output);
+  });
+
+  it.each([
+    ['true', true],
+    ['false', false],
+  ])("should evaluate booleans", (input, output) => {
+    const evaluated = testEval(input);
+    testBooleanObject(evaluated, output);
   });
 });
 
@@ -25,4 +33,9 @@ function testEval(input: string): ValueObject {
 function testIntegerObject(obj: ValueObject, expected: number): void {
     expect(obj.constructor.name).toEqual('MonkeyInteger');
     expect((obj as unknown as MonkeyInteger).getValue()).toEqual(expected);
+}
+
+function testBooleanObject(obj: ValueObject, expected: boolean): void {
+    expect(obj.constructor.name).toEqual('MonkeyBoolean');
+    expect((obj as unknown as MonkeyBoolean).getValue()).toEqual(expected);
 }
