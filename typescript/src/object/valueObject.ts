@@ -18,12 +18,21 @@ export class ValueObject {
 export class MonkeyInteger extends ValueObject {
     value: number;
 
+    constructor(value: number) {
+        super();
+        this.value = value;
+    }
+
     public inspect(): string {
         return this.value.toString();
     }
 
     public getType(): ValueObjectType {
         return INTEGER_OBJECT;
+    }
+
+    public getValue(): number {
+        return this.value;
     }
 }
 
