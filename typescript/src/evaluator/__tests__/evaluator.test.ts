@@ -19,6 +19,18 @@ describe("Evaluator", () => {
     const evaluated = testEval(input);
     testBooleanObject(evaluated, output);
   });
+
+  it.each([
+    ['!true', false],
+    ['!false', true],
+    ['!5', false],
+    ['!!true', true],
+    ['!!false', false],
+    ['!!5', true],
+  ])("should evaluate bang prefix expressions", (input, output) => {
+    const evaluated = testEval(input);
+    testBooleanObject(evaluated, output);
+  });
 });
 
 
