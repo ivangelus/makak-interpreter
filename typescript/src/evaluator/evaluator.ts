@@ -4,7 +4,7 @@ import { Node } from "../ast/node";
 import { Program } from "../ast/program";
 import { ExpressionStatement } from "../ast/statements/expressionStatement";
 import { Statement } from "../ast/statements/statement";
-import { MonkeyBoolean, MonkeyInteger, MonkeyNull, ValueObject } from "../object/valueObject";
+import { INTEGER_OBJECT, MonkeyBoolean, MonkeyInteger, MonkeyNull, ValueObject } from "../object/valueObject";
 import { PrefixExpression } from "../ast/expressions/prefix";
 
 const TRUE = new MonkeyBoolean(true);
@@ -52,13 +52,15 @@ function nativeBoolToBoolObject(bool: boolean): ValueObject {
 function evalPrefixExpression(operator: string, right: ValueObject): ValueObject {
     switch (operator) {
         case '!':
-            return evalBangOperatorExpression(right);
+            return evalBangPrefixOperatorExpression(right);
+        case '-':
+            return evalMinusPrefixOperatorExpression(right);
         default:
             return null;
     }
 }
 
-function evalBangOperatorExpression(right: ValueObject): ValueObject {
+function evalBangPrefixOperatorExpression(right: ValueObject): ValueObject {
     switch (right) {
         case FALSE:
             return TRUE;
@@ -69,4 +71,13 @@ function evalBangOperatorExpression(right: ValueObject): ValueObject {
         default:
             return FALSE;
     }
+}
+
+function evalMinusPrefixOperatorExpression(right: ValueObject): ValueObject {
+    if (right.getType() != INTEGER_OBJECT) {
+        return NULL
+    }
+
+    const value = (right as unknown as MonkeyInteger).getValue()
+    return new MonkeyInteger(-value);
 }

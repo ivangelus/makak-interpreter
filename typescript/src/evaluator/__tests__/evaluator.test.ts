@@ -7,6 +7,8 @@ describe("Evaluator", () => {
   it.each([
     ['5', 5],
     ['10', 10],
+    ['-5', -5],
+    ['-10', -10],
   ])("should evaluate integer literals", (input, output) => {
     const evaluated = testEval(input);
     testIntegerObject(evaluated, output);

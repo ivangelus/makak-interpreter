@@ -1,7 +1,7 @@
 
 type ValueObjectType = string;
 
-const INTEGER_OBJECT = 'INTEGER';
+export const INTEGER_OBJECT = 'INTEGER';
 const BOOLEAN_OBJECT = 'BOOLEAN';
 const NULL_OBJECT = 'NULL';
 
