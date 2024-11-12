@@ -75,6 +75,14 @@ function evalIntegerInfixExpressions(operator: string, left: ValueObject, right:
             return new MonkeyInteger(leftValue * rightValue);
         case '/':
             return new MonkeyInteger(leftValue / rightValue);
+        case '>':
+            return nativeBoolToBoolObject(leftValue > rightValue);
+        case '<':
+            return nativeBoolToBoolObject(leftValue < rightValue);
+        case '==':
+            return nativeBoolToBoolObject(leftValue === rightValue);
+        case '!=':
+            return nativeBoolToBoolObject(leftValue !== rightValue);
         default:
             return NULL;
     }

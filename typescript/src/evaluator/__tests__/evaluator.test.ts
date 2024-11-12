@@ -28,7 +28,15 @@ describe("Evaluator", () => {
   it.each([
     ['true', true],
     ['false', false],
-  ])("should evaluate booleans", (input, output) => {
+    ["1 < 2", true],
+    ["1 > 2", false],
+    ["1 < 1", false],
+    ["1 > 1", false],
+    ["1 == 1", true],
+    ["1 != 1", false],
+    ["1 == 2", false],
+    ["1 != 2", true],
+  ])("should evaluate boolean expressions", (input, output) => {
     const evaluated = testEval(input);
     testBooleanObject(evaluated, output);
   });
