@@ -3,7 +3,7 @@ type ValueObjectType = string;
 
 export const INTEGER_OBJECT = 'INTEGER';
 const BOOLEAN_OBJECT = 'BOOLEAN';
-const NULL_OBJECT = 'NULL';
+export const NULL_OBJECT = 'NULL';
 
 export class ValueObject {
     public getType(): ValueObjectType {

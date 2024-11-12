@@ -1,5 +1,5 @@
 import { Lexer } from "../../lexer/lexer";
-import { MonkeyBoolean, MonkeyInteger, ValueObject } from "../../object/valueObject";
+import { MonkeyBoolean, MonkeyInteger, MonkeyNull, NULL_OBJECT, ValueObject } from "../../object/valueObject";
 import { Parser } from "../../parser/parser";
 import { evaluate } from "../evaluator";
 
@@ -61,6 +61,23 @@ describe("Evaluator", () => {
     const evaluated = testEval(input);
     testBooleanObject(evaluated, output);
   });
+
+  it.each([
+    ["if (true) { 10 }", 10],
+    ["if (false) { 10 }", null],
+    ["if (1) { 10 }", 10],
+    ["if (1 < 2) { 10 }", 10],
+    ["if (1 > 2) { 10 }", null],
+    ["if (1 > 2) { 10 } else { 20 }", 20],
+    ["if (1 < 2) { 10 } else { 20 }", 10],
+  ])("should evaluate if conditionals", (input, output) => {
+    const evaluated = testEval(input);
+    if (output !== null) {
+      testIntegerObject(evaluated, output);
+    } else {
+      testNullObject
+    }
+  })
 });
 
 
@@ -80,4 +97,8 @@ function testIntegerObject(obj: ValueObject, expected: number): void {
 function testBooleanObject(obj: ValueObject, expected: boolean): void {
     expect(obj.constructor.name).toEqual('MonkeyBoolean');
     expect((obj as unknown as MonkeyBoolean).getValue()).toEqual(expected);
+}
+
+function testNullObject(obj: ValueObject): void {
+  expect((obj as unknown as MonkeyNull).getType()).toEqual(NULL_OBJECT);
 }

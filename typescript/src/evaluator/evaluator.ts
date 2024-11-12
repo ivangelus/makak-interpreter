@@ -7,7 +7,7 @@ import { Statement } from "../ast/statements/statement";
 import { INTEGER_OBJECT, MonkeyBoolean, MonkeyInteger, MonkeyNull, ValueObject } from "../object/valueObject";
 import { PrefixExpression } from "../ast/expressions/prefix";
 import { InfixExpression } from "../ast/expressions/infix";
-import { openAsBlob } from "fs";
+import { IfExpression } from "../ast/expressions/ifExpression";
 
 const TRUE = new MonkeyBoolean(true);
 const FALSE = new MonkeyBoolean(false);
@@ -17,6 +17,8 @@ export function evaluate(node: Node): ValueObject {
     switch (node.constructor.name) {
         // statements
         case 'Program':
+            return evalStatements((node as unknown as Program).statements);
+        case 'BlockStatement':
             return evalStatements((node as unknown as Program).statements);
         case 'ExpressionStatement':
             return evaluate((node as unknown as ExpressionStatement).getExpression());
@@ -32,9 +34,36 @@ export function evaluate(node: Node): ValueObject {
             const leftInfix = evaluate((node as unknown as InfixExpression).getLeft())
             const rightInfix = evaluate((node as unknown as PrefixExpression).getRight());
             return evalInfixExpression((node as unknown as InfixExpression).getOperator(), leftInfix, rightInfix);
+        case 'IfExpression':
+            return evalIfExpression(node as unknown as IfExpression);
         default:
             return null;
     }
+}
+
+function evalIfExpression(ie: IfExpression): ValueObject {
+    const condition = evaluate(ie.getCondition());
+
+    if (isTruthy(condition)) {
+        return evaluate(ie.getConsequence());
+    } else if (ie.getAlternative() !== null) {
+        return evaluate(ie.getAlternative());
+    } else {
+        return NULL;
+    }
+}
+
+function isTruthy(obj: ValueObject): boolean {
+    switch (obj) {
+        case NULL:
+            return false;
+        case TRUE:
+            return true;
+        case FALSE:
+            return false;
+        default:
+            return true;
+        }
 }
 
 function evalStatements(stmts: Statement[]): ValueObject {
