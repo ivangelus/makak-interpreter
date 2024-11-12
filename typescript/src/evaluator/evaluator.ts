@@ -6,6 +6,8 @@ import { ExpressionStatement } from "../ast/statements/expressionStatement";
 import { Statement } from "../ast/statements/statement";
 import { INTEGER_OBJECT, MonkeyBoolean, MonkeyInteger, MonkeyNull, ValueObject } from "../object/valueObject";
 import { PrefixExpression } from "../ast/expressions/prefix";
+import { InfixExpression } from "../ast/expressions/infix";
+import { openAsBlob } from "fs";
 
 const TRUE = new MonkeyBoolean(true);
 const FALSE = new MonkeyBoolean(false);
@@ -24,8 +26,12 @@ export function evaluate(node: Node): ValueObject {
         case 'Boolean':
             return nativeBoolToBoolObject((node as unknown as Boolean).getValue());
         case 'PrefixExpression':
-            const right = evaluate((node as unknown as PrefixExpression).getRight());
-            return evalPrefixExpression((node as unknown as PrefixExpression).getOperator(), right);
+            const rightPrefix = evaluate((node as unknown as PrefixExpression).getRight());
+            return evalPrefixExpression((node as unknown as PrefixExpression).getOperator(), rightPrefix);
+        case 'InfixExpression':
+            const leftInfix = evaluate((node as unknown as InfixExpression).getLeft())
+            const rightInfix = evaluate((node as unknown as PrefixExpression).getRight());
+            return evalInfixExpression((node as unknown as InfixExpression).getOperator(), leftInfix, rightInfix);
         default:
             return null;
     }
@@ -46,6 +52,31 @@ function nativeBoolToBoolObject(bool: boolean): ValueObject {
         return TRUE;
     } else {
         return FALSE;
+    }
+}
+
+function evalInfixExpression(operator: string, left: ValueObject, right: ValueObject): ValueObject {
+    if (left.getType() === INTEGER_OBJECT && right.getType() === INTEGER_OBJECT) {
+        return evalIntegerInfixExpressions(operator, left, right);
+    } else {
+        return NULL;
+    }
+}
+
+function evalIntegerInfixExpressions(operator: string, left: ValueObject, right: ValueObject): ValueObject {
+    const leftValue = (left as unknown as MonkeyInteger).getValue();
+    const rightValue = (right as unknown as MonkeyInteger).getValue();
+    switch (operator) {
+        case '+':
+            return new MonkeyInteger(leftValue + rightValue);
+        case '-':
+            return new MonkeyInteger(leftValue - rightValue);
+        case '*':
+            return new MonkeyInteger(leftValue * rightValue);
+        case '/':
+            return new MonkeyInteger(leftValue / rightValue);
+        default:
+            return NULL;
     }
 }
 
