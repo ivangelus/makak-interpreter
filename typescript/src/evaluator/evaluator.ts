@@ -55,12 +55,20 @@ function nativeBoolToBoolObject(bool: boolean): ValueObject {
     }
 }
 
-function evalInfixExpression(operator: string, left: ValueObject, right: ValueObject): ValueObject {
-    if (left.getType() === INTEGER_OBJECT && right.getType() === INTEGER_OBJECT) {
-        return evalIntegerInfixExpressions(operator, left, right);
-    } else {
-        return NULL;
-    }
+function evalInfixExpression(
+  operator: string,
+  left: ValueObject,
+  right: ValueObject
+): ValueObject {
+  if (left.getType() === INTEGER_OBJECT && right.getType() === INTEGER_OBJECT) {
+    return evalIntegerInfixExpressions(operator, left, right);
+  } else if (operator === "==") {
+    return nativeBoolToBoolObject(left === right);
+  } else if (operator === "!=") {
+    return nativeBoolToBoolObject(left !== right);
+  } else {
+    return NULL;
+  }
 }
 
 function evalIntegerInfixExpressions(operator: string, left: ValueObject, right: ValueObject): ValueObject {
