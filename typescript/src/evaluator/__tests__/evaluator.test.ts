@@ -78,6 +78,16 @@ describe("Evaluator", () => {
       testNullObject
     }
   })
+
+  it.each([
+    ["return 10;", 10],
+    ["return 10; 9;", 10],
+    ["return 2 * 5; 9;", 10],
+    ["9; return 2 * 5; 9;", 10],
+  ])("should evaluate return statements", (input, output) => {
+    const evaluated = testEval(input);
+    testIntegerObject(evaluated, output);
+  })
 });
 
 

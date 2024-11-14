@@ -4,10 +4,11 @@ import { Node } from "../ast/node";
 import { Program } from "../ast/program";
 import { ExpressionStatement } from "../ast/statements/expressionStatement";
 import { Statement } from "../ast/statements/statement";
-import { INTEGER_OBJECT, MonkeyBoolean, MonkeyInteger, MonkeyNull, ValueObject } from "../object/valueObject";
+import { INTEGER_OBJECT, MonkeyBoolean, MonkeyInteger, MonkeyNull, MonkeyReturn, RETURN_VALUE_OBJECT, ValueObject } from "../object/valueObject";
 import { PrefixExpression } from "../ast/expressions/prefix";
 import { InfixExpression } from "../ast/expressions/infix";
 import { IfExpression } from "../ast/expressions/ifExpression";
+import { ReturnStatement } from "../ast/statements/returnStatement";
 
 const TRUE = new MonkeyBoolean(true);
 const FALSE = new MonkeyBoolean(false);
@@ -22,6 +23,9 @@ export function evaluate(node: Node): ValueObject {
             return evalStatements((node as unknown as Program).statements);
         case 'ExpressionStatement':
             return evaluate((node as unknown as ExpressionStatement).getExpression());
+        case 'ReturnStatement':
+            const val = evaluate((node as unknown as ReturnStatement).getReturnValue());
+            return new MonkeyReturn(val);
         // expressions
         case 'IntegerLiteral':
             return new MonkeyInteger((node as unknown as IntegerLiteral).getValue());
@@ -71,6 +75,10 @@ function evalStatements(stmts: Statement[]): ValueObject {
 
     for (let i = 0; i < stmts.length; i++) {
         result = evaluate(stmts[i]);
+
+        if (result.getType() === RETURN_VALUE_OBJECT) {
+            return (result as unknown as MonkeyReturn).getValue();
+        }
     }
 
     return result;

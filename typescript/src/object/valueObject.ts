@@ -4,6 +4,7 @@ type ValueObjectType = string;
 export const INTEGER_OBJECT = 'INTEGER';
 const BOOLEAN_OBJECT = 'BOOLEAN';
 export const NULL_OBJECT = 'NULL';
+export const RETURN_VALUE_OBJECT = 'RETURN_VALUE';
 
 export class ValueObject {
     public getType(): ValueObjectType {
@@ -58,12 +59,31 @@ export class MonkeyBoolean extends ValueObject {
 }
 
 export class MonkeyNull extends ValueObject {
-
     public inspect(): string {
         return 'null';
     }
 
     public getType(): ValueObjectType {
         return NULL_OBJECT;
+    }
+}
+
+export class MonkeyReturn extends ValueObject {
+    value: ValueObject;
+    constructor (value: ValueObject) {
+        super();
+        this.value = value;
+    }
+
+    public inspect(): string {
+        return this.value.inspect();
+    }
+
+    public getType(): ValueObjectType {
+        return RETURN_VALUE_OBJECT;
+    }
+
+    public getValue(): ValueObject {
+        return this.value;
     }
 }
