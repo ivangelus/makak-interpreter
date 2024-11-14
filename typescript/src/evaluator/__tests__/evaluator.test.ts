@@ -5,10 +5,10 @@ import { evaluate } from "../evaluator";
 
 describe("Evaluator", () => {
   it.each([
-    ['5', 5],
-    ['10', 10],
-    ['-5', -5],
-    ['-10', -10],
+    ["5", 5],
+    ["10", 10],
+    ["-5", -5],
+    ["-10", -10],
     ["5 + 5 + 5 + 5 - 10", 10],
     ["2 * 2 * 2 * 2 * 2", 32],
     ["-50 + 100 + -50", 0],
@@ -26,8 +26,8 @@ describe("Evaluator", () => {
   });
 
   it.each([
-    ['true', true],
-    ['false', false],
+    ["true", true],
+    ["false", false],
     ["1 < 2", true],
     ["1 > 2", false],
     ["1 < 1", false],
@@ -51,12 +51,12 @@ describe("Evaluator", () => {
   });
 
   it.each([
-    ['!true', false],
-    ['!false', true],
-    ['!5', false],
-    ['!!true', true],
-    ['!!false', false],
-    ['!!5', true],
+    ["!true", false],
+    ["!false", true],
+    ["!5", false],
+    ["!!true", true],
+    ["!!false", false],
+    ["!!5", true],
   ])("should evaluate bang prefix expressions", (input, output) => {
     const evaluated = testEval(input);
     testBooleanObject(evaluated, output);
@@ -75,19 +75,31 @@ describe("Evaluator", () => {
     if (output !== null) {
       testIntegerObject(evaluated, output);
     } else {
-      testNullObject
+      testNullObject;
     }
-  })
+  });
 
   it.each([
     ["return 10;", 10],
     ["return 10; 9;", 10],
     ["return 2 * 5; 9;", 10],
     ["9; return 2 * 5; 9;", 10],
+    [
+      `
+    if (10 > 1) {
+      if (10 > 1) {
+        return 10;
+      }
+
+      return 1;
+    }
+`,
+      10,
+    ],
   ])("should evaluate return statements", (input, output) => {
     const evaluated = testEval(input);
     testIntegerObject(evaluated, output);
-  })
+  });
 });
 
 

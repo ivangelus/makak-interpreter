@@ -9,6 +9,7 @@ import { PrefixExpression } from "../ast/expressions/prefix";
 import { InfixExpression } from "../ast/expressions/infix";
 import { IfExpression } from "../ast/expressions/ifExpression";
 import { ReturnStatement } from "../ast/statements/returnStatement";
+import { BlockStatement } from "../ast/statements/blockStatement";
 
 const TRUE = new MonkeyBoolean(true);
 const FALSE = new MonkeyBoolean(false);
@@ -18,9 +19,9 @@ export function evaluate(node: Node): ValueObject {
     switch (node.constructor.name) {
         // statements
         case 'Program':
-            return evalStatements((node as unknown as Program).statements);
+            return evalProgram((node as unknown as Program).statements);
         case 'BlockStatement':
-            return evalStatements((node as unknown as Program).statements);
+            return evalBlockStatement((node as unknown as BlockStatement));
         case 'ExpressionStatement':
             return evaluate((node as unknown as ExpressionStatement).getExpression());
         case 'ReturnStatement':
@@ -70,7 +71,7 @@ function isTruthy(obj: ValueObject): boolean {
         }
 }
 
-function evalStatements(stmts: Statement[]): ValueObject {
+function evalProgram(stmts: Statement[]): ValueObject {
     let result: ValueObject;
 
     for (let i = 0; i < stmts.length; i++) {
@@ -82,6 +83,21 @@ function evalStatements(stmts: Statement[]): ValueObject {
     }
 
     return result;
+}
+
+function evalBlockStatement(block: BlockStatement): ValueObject {
+    let result: ValueObject;
+    const stmts = block.getStatements()
+
+    for (let i = 0; i < stmts.length; i++) {
+        result = evaluate(stmts[i])
+
+        if (result !== null && result.getType() === RETURN_VALUE_OBJECT) {
+            return result
+        }
+    }
+
+    return result
 }
 
 function nativeBoolToBoolObject(bool: boolean): ValueObject {
