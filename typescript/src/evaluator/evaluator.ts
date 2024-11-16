@@ -38,6 +38,9 @@ export function evaluate(node: Node): ValueObject {
       const val = evaluate(
         (node as unknown as ReturnStatement).getReturnValue()
       );
+      if (isErrorObject(val)) {
+        return val;
+      }
       return new MonkeyReturn(val);
     // expressions
     case "IntegerLiteral":
@@ -48,6 +51,9 @@ export function evaluate(node: Node): ValueObject {
       const rightPrefix = evaluate(
         (node as unknown as PrefixExpression).getRight()
       );
+      if (isErrorObject(rightPrefix)) {
+        return rightPrefix;
+      }
       return evalPrefixExpression(
         (node as unknown as PrefixExpression).getOperator(),
         rightPrefix
@@ -56,9 +62,15 @@ export function evaluate(node: Node): ValueObject {
       const leftInfix = evaluate(
         (node as unknown as InfixExpression).getLeft()
       );
+      if (isErrorObject(leftInfix)) {
+        return leftInfix;
+      }
       const rightInfix = evaluate(
         (node as unknown as PrefixExpression).getRight()
       );
+      if (isErrorObject(rightInfix)) {
+        return rightInfix;
+      }
       return evalInfixExpression(
         (node as unknown as InfixExpression).getOperator(),
         leftInfix,
@@ -73,6 +85,9 @@ export function evaluate(node: Node): ValueObject {
 
 function evalIfExpression(ie: IfExpression): ValueObject {
   const condition = evaluate(ie.getCondition());
+  if (isErrorObject(condition)) {
+    return condition;
+  }
 
   if (isTruthy(condition)) {
     return evaluate(ie.getConsequence());
@@ -81,6 +96,13 @@ function evalIfExpression(ie: IfExpression): ValueObject {
   } else {
     return NULL;
   }
+}
+
+function isErrorObject(obj: ValueObject): boolean {
+    if (obj !== NULL) {
+        return obj.getType() === ERROR_OBJECT;
+    }
+    return false;
 }
 
 function isTruthy(obj: ValueObject): boolean {
