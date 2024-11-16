@@ -1,5 +1,14 @@
 import { Lexer } from "../../lexer/lexer";
-import { ERROR_OBJECT, MonkeyBoolean, MonkeyError, MonkeyInteger, MonkeyNull, NULL_OBJECT, ValueObject } from "../../object/valueObject";
+import { MonkeyEnvironment } from "../../object/environment";
+import {
+  ERROR_OBJECT,
+  MonkeyBoolean,
+  MonkeyError,
+  MonkeyInteger,
+  MonkeyNull,
+  NULL_OBJECT,
+  ValueObject,
+} from "../../object/valueObject";
 import { Parser } from "../../parser/parser";
 import { evaluate } from "../evaluator";
 
@@ -102,31 +111,13 @@ describe("Evaluator", () => {
   });
 
   it.each([
+    ["5 + true;", "type mismatch: INTEGER + BOOLEAN"],
+    ["5 + true; 5;", "type mismatch: INTEGER + BOOLEAN"],
+    ["-true", "unknown operator: -BOOLEAN"],
+    ["true + false;", "unknown operator: BOOLEAN + BOOLEAN"],
+    ["5; true + false; 5", "unknown operator: BOOLEAN + BOOLEAN"],
+    ["if (10 > 1) { true + false; }", "unknown operator: BOOLEAN + BOOLEAN"],
     [
-      "5 + true;",
-      "type mismatch: INTEGER + BOOLEAN",
-    ],
-  [
-      "5 + true; 5;",
-      "type mismatch: INTEGER + BOOLEAN",
-  ],
-  [
-      "-true",
-      "unknown operator: -BOOLEAN",
-  ],
-  [
-      "true + false;",
-      "unknown operator: BOOLEAN + BOOLEAN",
-  ],
-  [
-      "5; true + false; 5",
-      "unknown operator: BOOLEAN + BOOLEAN",
-  ],
-  [
-      "if (10 > 1) { true + false; }",
-      "unknown operator: BOOLEAN + BOOLEAN",
-  ],
-  [
       `
 if (10 > 1) {
 if (10 > 1) {
@@ -137,32 +128,43 @@ return 1;
 }
 `,
       "unknown operator: BOOLEAN + BOOLEAN",
-  ],
+    ],
+    ["foobar", "identifier not found: foobar"],
   ])("should handle syntax errors", (input, output) => {
     const evaluated = testEval(input);
 
     expect(evaluated.getType()).toEqual(ERROR_OBJECT);
     expect((evaluated as unknown as MonkeyError).getMessage()).toEqual(output);
   });
+
+  it.each([
+    ["let a = 5; a;", 5],
+    ["let a = 5 * 5; a;", 25],
+    ["let a = 5; let b = a; b;", 5],
+    ["let a = 5; let b = a; let c = a + b + 5; c;", 15],
+  ])("should evaluate let statements", (input, output) => {
+    const evaluated = testEval(input);
+    testIntegerObject(evaluated, output);
+  });
 });
 
-
 function testEval(input: string): ValueObject {
-    const lexer = new Lexer(input);
-    const parser = new Parser(lexer);
-    const program = parser.parseProgram();
+  const lexer = new Lexer(input);
+  const parser = new Parser(lexer);
+  const program = parser.parseProgram();
+  const env = new MonkeyEnvironment(new Map());
 
-    return evaluate(program);
+  return evaluate(program, env);
 }
 
 function testIntegerObject(obj: ValueObject, expected: number): void {
-    expect(obj.constructor.name).toEqual('MonkeyInteger');
-    expect((obj as unknown as MonkeyInteger).getValue()).toEqual(expected);
+  expect(obj.constructor.name).toEqual("MonkeyInteger");
+  expect((obj as unknown as MonkeyInteger).getValue()).toEqual(expected);
 }
 
 function testBooleanObject(obj: ValueObject, expected: boolean): void {
-    expect(obj.constructor.name).toEqual('MonkeyBoolean');
-    expect((obj as unknown as MonkeyBoolean).getValue()).toEqual(expected);
+  expect(obj.constructor.name).toEqual("MonkeyBoolean");
+  expect((obj as unknown as MonkeyBoolean).getValue()).toEqual(expected);
 }
 
 function testNullObject(obj: ValueObject): void {

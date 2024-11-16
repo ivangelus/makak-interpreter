@@ -20,28 +20,47 @@ import { InfixExpression } from "../ast/expressions/infix";
 import { IfExpression } from "../ast/expressions/ifExpression";
 import { ReturnStatement } from "../ast/statements/returnStatement";
 import { BlockStatement } from "../ast/statements/blockStatement";
+import { LetStatement } from "../ast/statements/letStatement";
+import { MonkeyEnvironment } from "../object/environment";
+import { Identifier } from "../ast/expressions/identifier";
 
 const TRUE = new MonkeyBoolean(true);
 const FALSE = new MonkeyBoolean(false);
 const NULL = new MonkeyNull();
 
-export function evaluate(node: Node): ValueObject {
+export function evaluate(node: Node, env: MonkeyEnvironment): ValueObject {
   switch (node.constructor.name) {
     // statements
     case "Program":
-      return evalProgram((node as unknown as Program).statements);
+      return evalProgram((node as unknown as Program).statements, env);
     case "BlockStatement":
-      return evalBlockStatement(node as unknown as BlockStatement);
+      return evalBlockStatement(node as unknown as BlockStatement, env);
     case "ExpressionStatement":
-      return evaluate((node as unknown as ExpressionStatement).getExpression());
-    case "ReturnStatement":
-      const val = evaluate(
-        (node as unknown as ReturnStatement).getReturnValue()
+      return evaluate(
+        (node as unknown as ExpressionStatement).getExpression(),
+        env
       );
-      if (isErrorObject(val)) {
-        return val;
+    case "ReturnStatement":
+      const returnValue = evaluate(
+        (node as unknown as ReturnStatement).getReturnValue(),
+        env
+      );
+      if (isErrorObject(returnValue)) {
+        return returnValue;
       }
-      return new MonkeyReturn(val);
+      return new MonkeyReturn(returnValue);
+    case "LetStatement":
+      const letValue = evaluate(
+        (node as unknown as LetStatement).getValue(),
+        env
+      );
+      if (isErrorObject(letValue)) {
+        return letValue;
+      }
+      env.setValue(
+        (node as unknown as LetStatement).getName().getValue(),
+        letValue
+      );
     // expressions
     case "IntegerLiteral":
       return new MonkeyInteger((node as unknown as IntegerLiteral).getValue());
@@ -49,7 +68,8 @@ export function evaluate(node: Node): ValueObject {
       return nativeBoolToBoolObject((node as unknown as Boolean).getValue());
     case "PrefixExpression":
       const rightPrefix = evaluate(
-        (node as unknown as PrefixExpression).getRight()
+        (node as unknown as PrefixExpression).getRight(),
+        env
       );
       if (isErrorObject(rightPrefix)) {
         return rightPrefix;
@@ -60,13 +80,15 @@ export function evaluate(node: Node): ValueObject {
       );
     case "InfixExpression":
       const leftInfix = evaluate(
-        (node as unknown as InfixExpression).getLeft()
+        (node as unknown as InfixExpression).getLeft(),
+        env
       );
       if (isErrorObject(leftInfix)) {
         return leftInfix;
       }
       const rightInfix = evaluate(
-        (node as unknown as PrefixExpression).getRight()
+        (node as unknown as PrefixExpression).getRight(),
+        env
       );
       if (isErrorObject(rightInfix)) {
         return rightInfix;
@@ -77,32 +99,46 @@ export function evaluate(node: Node): ValueObject {
         rightInfix
       );
     case "IfExpression":
-      return evalIfExpression(node as unknown as IfExpression);
+      return evalIfExpression(node as unknown as IfExpression, env);
     default:
       return null;
+    case "Identifier":
+      return evalIdentifier(node as unknown as Identifier, env);
   }
 }
 
-function evalIfExpression(ie: IfExpression): ValueObject {
-  const condition = evaluate(ie.getCondition());
+function evalIfExpression(
+  ie: IfExpression,
+  env: MonkeyEnvironment
+): ValueObject {
+  const condition = evaluate(ie.getCondition(), env);
   if (isErrorObject(condition)) {
     return condition;
   }
 
   if (isTruthy(condition)) {
-    return evaluate(ie.getConsequence());
+    return evaluate(ie.getConsequence(), env);
   } else if (ie.getAlternative() !== null) {
-    return evaluate(ie.getAlternative());
+    return evaluate(ie.getAlternative(), env);
   } else {
     return NULL;
   }
 }
 
+function evalIdentifier(node: Identifier, env: MonkeyEnvironment): ValueObject {
+  const ident = node.getValue();
+  const value = env.getValue(ident);
+  if (!value) {
+    return newError(`identifier not found: ${ident}`);
+  }
+  return value;
+}
+
 function isErrorObject(obj: ValueObject): boolean {
-    if (obj !== NULL) {
-        return obj.getType() === ERROR_OBJECT;
-    }
-    return false;
+  if (obj !== NULL) {
+    return obj.getType() === ERROR_OBJECT;
+  }
+  return false;
 }
 
 function isTruthy(obj: ValueObject): boolean {
@@ -118,11 +154,11 @@ function isTruthy(obj: ValueObject): boolean {
   }
 }
 
-function evalProgram(stmts: Statement[]): ValueObject {
+function evalProgram(stmts: Statement[], env: MonkeyEnvironment): ValueObject {
   let result: ValueObject;
 
   for (let i = 0; i < stmts.length; i++) {
-    result = evaluate(stmts[i]);
+    result = evaluate(stmts[i], env);
 
     switch (result.getType()) {
       case RETURN_VALUE_OBJECT:
@@ -135,12 +171,15 @@ function evalProgram(stmts: Statement[]): ValueObject {
   return result;
 }
 
-function evalBlockStatement(block: BlockStatement): ValueObject {
+function evalBlockStatement(
+  block: BlockStatement,
+  env: MonkeyEnvironment
+): ValueObject {
   let result: ValueObject;
   const stmts = block.getStatements();
 
   for (let i = 0; i < stmts.length; i++) {
-    result = evaluate(stmts[i]);
+    result = evaluate(stmts[i], env);
 
     if (
       result !== null &&

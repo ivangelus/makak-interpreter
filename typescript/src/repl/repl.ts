@@ -2,6 +2,7 @@ import readline from "node:readline";
 import { Lexer } from "../lexer/lexer";
 import { Parser } from "../parser/parser";
 import { evaluate } from "../evaluator/evaluator";
+import { MonkeyEnvironment } from "../object/environment";
 
 const MONKEY_FACE = `            __,__
    .--.  .-"     "-.  .--.
@@ -22,6 +23,8 @@ const rl = readline.createInterface({
   prompt: ">> ",
 });
 
+const env = new MonkeyEnvironment(new Map());
+
 rl.prompt();
 
 rl.on("line", (input: any) => {
@@ -34,10 +37,10 @@ rl.on("line", (input: any) => {
       printParserErrors(errors);
     }
 
-    const evaluated = evaluate(program);
+    const evaluated = evaluate(program, env);
     if (evaluated) {
-        console.log(evaluated.inspect());
-        console.log("\n");
+      console.log(evaluated.inspect());
+      console.log("\n");
     }
   }
   rl.prompt();
