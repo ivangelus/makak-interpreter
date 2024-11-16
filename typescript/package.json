@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "monkey": "ts-node src/repl/repl.ts"
   },
   "author": "",
   "license": "ISC",
