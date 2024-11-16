@@ -1,5 +1,5 @@
 import { Lexer } from "../../lexer/lexer";
-import { MonkeyBoolean, MonkeyInteger, MonkeyNull, NULL_OBJECT, ValueObject } from "../../object/valueObject";
+import { ERROR_OBJECT, MonkeyBoolean, MonkeyError, MonkeyInteger, MonkeyNull, NULL_OBJECT, ValueObject } from "../../object/valueObject";
 import { Parser } from "../../parser/parser";
 import { evaluate } from "../evaluator";
 
@@ -99,6 +99,50 @@ describe("Evaluator", () => {
   ])("should evaluate return statements", (input, output) => {
     const evaluated = testEval(input);
     testIntegerObject(evaluated, output);
+  });
+
+  it.each([
+    [
+      "5 + true;",
+      "type mismatch: INTEGER + BOOLEAN",
+    ],
+  [
+      "5 + true; 5;",
+      "type mismatch: INTEGER + BOOLEAN",
+  ],
+  [
+      "-true",
+      "unknown operator: -BOOLEAN",
+  ],
+  [
+      "true + false;",
+      "unknown operator: BOOLEAN + BOOLEAN",
+  ],
+  [
+      "5; true + false; 5",
+      "unknown operator: BOOLEAN + BOOLEAN",
+  ],
+  [
+      "if (10 > 1) { true + false; }",
+      "unknown operator: BOOLEAN + BOOLEAN",
+  ],
+  [
+      `
+if (10 > 1) {
+if (10 > 1) {
+return true + false;
+}
+
+return 1;
+}
+`,
+      "unknown operator: BOOLEAN + BOOLEAN",
+  ],
+  ])("should handle syntax errors", (input, output) => {
+    const evaluated = testEval(input);
+
+    expect(evaluated.getType()).toEqual(ERROR_OBJECT);
+    expect((evaluated as unknown as MonkeyError).getMessage()).toEqual(output);
   });
 });
 
