@@ -1,3 +1,7 @@
+import { Identifier } from "../ast/expressions/identifier";
+import { BlockStatement } from "../ast/statements/blockStatement";
+import { MonkeyEnvironment } from "./environment";
+
 type ValueObjectType = string;
 
 export const INTEGER_OBJECT = "INTEGER";
@@ -5,6 +9,7 @@ const BOOLEAN_OBJECT = "BOOLEAN";
 export const NULL_OBJECT = "NULL";
 export const RETURN_VALUE_OBJECT = "RETURN_VALUE";
 export const ERROR_OBJECT = "ERROR";
+export const FUNCTION_OBJECT = "FUNCTION";
 
 export class ValueObject {
   public getType(): ValueObjectType {
@@ -100,11 +105,51 @@ export class MonkeyError extends ValueObject {
     return `Error: ${this.message}`;
   }
 
-  public getType(): string {
+  public getType(): ValueObjectType {
     return ERROR_OBJECT;
   }
 
   public getMessage(): string {
     return this.message;
+  }
+}
+
+export class MonkeyFunction extends ValueObject {
+  public params: Identifier[];
+  public body: BlockStatement;
+  public env: MonkeyEnvironment;
+
+  constructor(params: Identifier[], body: BlockStatement) {
+    super();
+    this.params = params;
+    this.body = body;
+  }
+
+  public inspect(): string {
+    const params: string[] = [];
+    for (let i = 0; i < this.params.length; i++) {
+      params.push(this.params[i].toString());
+    }
+    let out = "";
+    out += "fn";
+    out += "(";
+    out += params.join(", ");
+    out += ") {\n";
+    out += this.body.toString();
+    out += "\n}";
+
+    return out;
+  }
+
+  public getType(): ValueObjectType {
+    return FUNCTION_OBJECT;
+  }
+
+  public getParams(): Identifier[] {
+    return this.params;
+  }
+
+  public getBody(): BlockStatement {
+    return this.body;
   }
 }

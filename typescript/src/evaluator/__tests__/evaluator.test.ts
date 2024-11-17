@@ -2,8 +2,10 @@ import { Lexer } from "../../lexer/lexer";
 import { MonkeyEnvironment } from "../../object/environment";
 import {
   ERROR_OBJECT,
+  FUNCTION_OBJECT,
   MonkeyBoolean,
   MonkeyError,
+  MonkeyFunction,
   MonkeyInteger,
   MonkeyNull,
   NULL_OBJECT,
@@ -145,6 +147,20 @@ return 1;
   ])("should evaluate let statements", (input, output) => {
     const evaluated = testEval(input);
     testIntegerObject(evaluated, output);
+  });
+
+  it("should evaluate functions", () => {
+    const input = "fn(x) { x + 2; };";
+    const evaluated = testEval(input);
+
+    expect(evaluated.getType()).toEqual(FUNCTION_OBJECT);
+
+    const params = (evaluated as unknown as MonkeyFunction).getParams();
+    const body = (evaluated as unknown as MonkeyFunction).getBody();
+
+    expect(params.length).toEqual(1);
+    expect(params[0].toString()).toEqual("x");
+    expect(body.toString()).toEqual("(x + 2)");
   });
 });
 

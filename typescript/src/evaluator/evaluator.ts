@@ -9,6 +9,7 @@ import {
   INTEGER_OBJECT,
   MonkeyBoolean,
   MonkeyError,
+  MonkeyFunction,
   MonkeyInteger,
   MonkeyNull,
   MonkeyReturn,
@@ -23,6 +24,7 @@ import { BlockStatement } from "../ast/statements/blockStatement";
 import { LetStatement } from "../ast/statements/letStatement";
 import { MonkeyEnvironment } from "../object/environment";
 import { Identifier } from "../ast/expressions/identifier";
+import { FunctionLiteral } from "../ast/expressions/functionLiteral";
 
 const TRUE = new MonkeyBoolean(true);
 const FALSE = new MonkeyBoolean(false);
@@ -104,6 +106,10 @@ export function evaluate(node: Node, env: MonkeyEnvironment): ValueObject {
       return null;
     case "Identifier":
       return evalIdentifier(node as unknown as Identifier, env);
+    case "FunctionLiteral":
+      const params = (node as unknown as FunctionLiteral).getParams();
+      const body = (node as unknown as FunctionLiteral).getBody();
+      return new MonkeyFunction(params, body);
   }
 }
 
