@@ -3,25 +3,25 @@ import { Expression } from "../expressions/expression";
 import { Statement } from "./statement";
 
 export class ExpressionStatement extends Statement {
-    public token: Token; // the first token of expression
-    private expression: Expression;
+	public token: Token; // the first token of expression
+	private expression: Expression;
 
-    constructor(token: Token) {
-        super(token)
-    }
+	constructor(token: Token) {
+		super(token);
+	}
 
-    public setExpression(e: Expression) {
-        this.expression = e;
-    }
-    
-    public getExpression(): Expression {
-        return this.expression;
-    }
-    
-    public toString(): string {
-        if(this.expression !== null) {
-            return this.expression.toString();
-        }
-        return '';
-    }
+	public setExpression(e: Expression) {
+		this.expression = e;
+	}
+
+	public getExpression(): Expression {
+		return this.expression;
+	}
+
+	public toString(): string {
+		if (this.expression !== null) {
+			return this.expression.toString();
+		}
+		return "";
+	}
 }

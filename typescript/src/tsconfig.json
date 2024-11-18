@@ -1,14 +1,14 @@
 {
-  "ts-node": {
-    "compilerOptions": {
-      "module": "commonjs"
-    }
-  },
-    "compilerOptions": {
-      "module": "CommonJS",
-      "esModuleInterop": true,
-      "noImplicitAny": true,
-      "sourceMap": true,
-      "types": ["jest", "node"]
-    },
-  }
+	"ts-node": {
+		"compilerOptions": {
+			"module": "commonjs"
+		}
+	},
+	"compilerOptions": {
+		"module": "CommonJS",
+		"esModuleInterop": true,
+		"noImplicitAny": true,
+		"sourceMap": true,
+		"types": ["jest", "node"]
+	}
+}
