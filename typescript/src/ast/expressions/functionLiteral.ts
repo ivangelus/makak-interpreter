@@ -4,44 +4,43 @@ import { Expression } from "./expression";
 import { Identifier } from "./identifier";
 
 export class FunctionLiteral extends Expression {
-    public token: Token; // fn token
-    private params: Identifier[] = [];
-    private body: BlockStatement;
+	public token: Token; // fn token
+	private params: Identifier[] = [];
+	private body: BlockStatement;
 
-    public tokenLiteral(): string {
-        return this.token.literal;
-    }
+	public tokenLiteral(): string {
+		return this.token.literal;
+	}
 
-    public toString(): string {
-        const params = []
-        for (let i = 0; i < this.params.length; i++) {
-            params.push(this.params[i].toString());
-        }
+	public toString(): string {
+		const params = [];
+		for (let i = 0; i < this.params.length; i++) {
+			params.push(this.params[i].toString());
+		}
 
-        let output = '';
-        output += this.tokenLiteral();
-        output += '(';
-        output += params.join(', ');   
-        output += ') ';
-        output += this.body.toString();
-   
-        return output;
-    }
+		let output = "";
+		output += this.tokenLiteral();
+		output += "(";
+		output += params.join(", ");
+		output += ") ";
+		output += this.body.toString();
 
-    public getParams(): any {
-        return this.params;
-    }
+		return output;
+	}
 
-    public setParams(params: any): void {
-        this.params = params;
-    }
+	public getParams(): any {
+		return this.params;
+	}
 
-    public getBody(): BlockStatement {
-        return this.body;
-    }
+	public setParams(params: any): void {
+		this.params = params;
+	}
 
-    public setBody(body: BlockStatement): void {
-        this.body = body;
-    }
-   
+	public getBody(): BlockStatement {
+		return this.body;
+	}
+
+	public setBody(body: BlockStatement): void {
+		this.body = body;
+	}
 }
