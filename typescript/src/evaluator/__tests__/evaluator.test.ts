@@ -149,7 +149,7 @@ return 1;
 		testIntegerObject(evaluated, output);
 	});
 
-	it("should evaluate functions", () => {
+	it("should evaluate basic function", () => {
 		const input = "fn(x) { x + 2; };";
 		const evaluated = testEval(input);
 
@@ -161,6 +161,30 @@ return 1;
 		expect(params.length).toEqual(1);
 		expect(params[0].toString()).toEqual("x");
 		expect(body.toString()).toEqual("(x + 2)");
+	});
+
+	it.each([
+		["let identity = fn(x) { x; }; identity(5);", 5],
+		["let identity = fn(x) { return x; }; identity(5);", 5],
+		["let double = fn(x) { x * 2; }; double(5);", 10],
+		["let add = fn(x, y) { x + y; }; add(5, 5);", 10],
+		["let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20],
+		["fn(x) { x; }(5)", 5],
+	])("should evaluate functions", (input, output) => {
+		const evaluated = testEval(input);
+		testIntegerObject(evaluated, output);
+	});
+
+	it("should work with closures", () => {
+		const input = `
+    let newMultiplier = fn(x) {
+      fn(y) { x * y };
+    };
+    
+    let multiplyTwo = newMultiplier(2);
+    multiplyTwo(3);`;
+
+		testIntegerObject(testEval(input), 6);
 	});
 });
 

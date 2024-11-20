@@ -6,6 +6,7 @@ import { ExpressionStatement } from "../ast/statements/expressionStatement";
 import { Statement } from "../ast/statements/statement";
 import {
 	ERROR_OBJECT,
+	FUNCTION_OBJECT,
 	INTEGER_OBJECT,
 	MonkeyBoolean,
 	MonkeyError,
@@ -25,6 +26,8 @@ import { LetStatement } from "../ast/statements/letStatement";
 import { MonkeyEnvironment } from "../object/environment";
 import { Identifier } from "../ast/expressions/identifier";
 import { FunctionLiteral } from "../ast/expressions/functionLiteral";
+import { CallExpression } from "../ast/expressions/callExpression";
+import { Expression } from "../ast/expressions/expression";
 
 const TRUE = new MonkeyBoolean(true);
 const FALSE = new MonkeyBoolean(false);
@@ -102,15 +105,81 @@ export function evaluate(node: Node, env: MonkeyEnvironment): ValueObject {
 			);
 		case "IfExpression":
 			return evalIfExpression(node as unknown as IfExpression, env);
-		default:
-			return null;
 		case "Identifier":
 			return evalIdentifier(node as unknown as Identifier, env);
 		case "FunctionLiteral":
 			const params = (node as unknown as FunctionLiteral).getParams();
 			const body = (node as unknown as FunctionLiteral).getBody();
-			return new MonkeyFunction(params, body);
+			return new MonkeyFunction(params, body, env);
+		case "CallExpression":
+			const evaluatedFn = evaluate(
+				(node as unknown as CallExpression).getFunction(),
+				env,
+			);
+			if (isErrorObject(evaluatedFn)) {
+				return evaluatedFn;
+			}
+			const args = evalExpressions(
+				(node as unknown as CallExpression).getArgs(),
+				env,
+			);
+			if (args.length === 1 && isErrorObject(args[0])) {
+				return args[0];
+			}
+
+			return applyFunction(evaluatedFn, args);
+		default:
+			return null;
 	}
+}
+
+function applyFunction(fn: ValueObject, args: ValueObject[]) {
+	if (fn.getType() !== FUNCTION_OBJECT) {
+		return newError(`not a function: ${fn.getType()}`);
+	}
+	const extendedEnv = extendFnEnv(fn as unknown as MonkeyFunction, args);
+	const evaluated = evaluate(
+		(fn as unknown as MonkeyFunction).getBody(),
+		extendedEnv,
+	);
+
+	return unwrapReturnValue(evaluated);
+}
+
+function extendFnEnv(fn: MonkeyFunction, args: ValueObject[]) {
+	const env = new MonkeyEnvironment(new Map());
+	env.setOuter(fn.getEnv());
+	const params = fn.getParams();
+	for (let i = 0; i < params.length; i++) {
+		env.setValue(params[i].getValue(), args[i]);
+	}
+
+	return env;
+}
+
+function unwrapReturnValue(val: ValueObject): ValueObject {
+	if (val.getType() === RETURN_VALUE_OBJECT) {
+		return (val as unknown as MonkeyReturn).getValue();
+	}
+
+	return val;
+}
+
+function evalExpressions(
+	exps: Expression[],
+	env: MonkeyEnvironment,
+): ValueObject[] {
+	const result: ValueObject[] = [];
+
+	for (let i = 0; i < exps.length; i++) {
+		const evaluated = evaluate(exps[i], env);
+
+		if (isErrorObject(evaluated)) {
+			return [evaluated];
+		}
+		result.push(evaluated);
+	}
+	return result;
 }
 
 function evalIfExpression(

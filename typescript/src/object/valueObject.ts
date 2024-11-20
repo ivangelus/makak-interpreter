@@ -119,10 +119,15 @@ export class MonkeyFunction extends ValueObject {
 	public body: BlockStatement;
 	public env: MonkeyEnvironment;
 
-	constructor(params: Identifier[], body: BlockStatement) {
+	constructor(
+		params: Identifier[],
+		body: BlockStatement,
+		env: MonkeyEnvironment,
+	) {
 		super();
 		this.params = params;
 		this.body = body;
+		this.env = env;
 	}
 
 	public inspect(): string {
@@ -143,6 +148,10 @@ export class MonkeyFunction extends ValueObject {
 
 	public getType(): ValueObjectType {
 		return FUNCTION_OBJECT;
+	}
+
+	getEnv(): MonkeyEnvironment {
+		return this.env;
 	}
 
 	public getParams(): Identifier[] {
