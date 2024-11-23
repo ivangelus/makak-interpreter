@@ -16,6 +16,7 @@ import {
 	MonkeyReturn,
 	MonkeyString,
 	RETURN_VALUE_OBJECT,
+	STRING_OBJECT,
 	ValueObject,
 } from "../object/valueObject";
 import { PrefixExpression } from "../ast/expressions/prefix";
@@ -295,11 +296,33 @@ function evalInfixExpression(
 		return newError(
 			`type mismatch: ${left.getType()} ${operator} ${right.getType()}`,
 		);
+	} else if (
+		left.getType() === STRING_OBJECT &&
+		right.getType() === STRING_OBJECT
+	) {
+		return evalStringInfixExpression(operator, left, right);
 	} else {
 		return newError(
 			`unknown operator: ${left.getType()} ${operator} ${right.getType()}`,
 		);
 	}
+}
+
+function evalStringInfixExpression(
+	operator: string,
+	left: ValueObject,
+	right: ValueObject,
+): ValueObject {
+	if (operator !== "+") {
+		return newError(
+			`unknown operator: ${left.getType()} ${operator} ${right.getType()}`,
+		);
+	}
+
+	const leftVal = (left as unknown as MonkeyString).getValue();
+	const rightVal = (right as unknown as MonkeyString).getValue();
+
+	return new MonkeyString(leftVal + rightVal);
 }
 
 function evalIntegerInfixExpressions(

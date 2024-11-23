@@ -134,6 +134,7 @@ return 1;
 			"unknown operator: BOOLEAN + BOOLEAN",
 		],
 		["foobar", "identifier not found: foobar"],
+		[`"Hello" - "World"`, "unknown operator: STRING - STRING"],
 	])("should handle syntax errors", (input, output) => {
 		const evaluated = testEval(input);
 
@@ -157,6 +158,16 @@ return 1;
 
 		expect(evaluated.getType()).toEqual(STRING_OBJECT);
 
+		expect((evaluated as unknown as MonkeyString).getValue()).toEqual(
+			"Hello World!",
+		);
+	});
+
+	it("should support string concatenation", () => {
+		const input = `"Hello" + " " + "World!"`;
+		const evaluated = testEval(input);
+
+		expect(evaluated.getType()).toEqual(STRING_OBJECT);
 		expect((evaluated as unknown as MonkeyString).getValue()).toEqual(
 			"Hello World!",
 		);
