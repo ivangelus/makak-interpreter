@@ -11,6 +11,7 @@ export const TokenType = {
 	// Identifiers + literals
 	Ident: "IDENT", // add, foobar, x, y, ...
 	Int: "INT", // 1343456
+	String: "STRING", // "Hello"
 
 	// Operators
 	Assign: "=",

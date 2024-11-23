@@ -85,6 +85,19 @@ export class Lexer {
 		}
 	}
 
+	private readString(): string {
+		const position = this.position + 1;
+		this.readChar();
+		while (this.ch !== '"') {
+			if (this.ch === "\0") {
+				break;
+			}
+			this.readChar();
+		}
+
+		return this.input.slice(position, this.position);
+	}
+
 	public nextToken() {
 		this.skipWhitespace();
 
@@ -141,6 +154,12 @@ export class Lexer {
 				break;
 			case "}":
 				tok = createToken({ tokenType: TokenType.RBrace, ch: this.ch });
+				break;
+			case '"':
+				tok = createToken({
+					tokenType: TokenType.String,
+					ch: this.readString(),
+				});
 				break;
 			case "\0":
 				tok = createToken({ tokenType: TokenType.Eof, ch: "" });
