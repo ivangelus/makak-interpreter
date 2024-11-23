@@ -15,6 +15,7 @@ import { IfExpression } from "../ast/expressions/ifExpression";
 import { BlockStatement } from "../ast/statements/blockStatement";
 import { FunctionLiteral } from "../ast/expressions/functionLiteral";
 import { CallExpression } from "../ast/expressions/callExpression";
+import { StringLiteral } from "../ast/expressions/stringLiteral";
 
 const Precedence = {
 	Lowest: 0,
@@ -249,6 +250,10 @@ export class Parser {
 		return functionLiteral;
 	};
 
+	private parseStringLiteral = (): Expression | null => {
+		return new StringLiteral(this.curToken, this.curToken.literal);
+	};
+
 	private parseExpression(precedence: PrecedenceValue): Expression | null {
 		const prefixFn = this.prefixParseFnSupplier();
 
@@ -297,6 +302,8 @@ export class Parser {
 				return this.parseIfExpression;
 			case TokenType.Function:
 				return this.parseFunctionLiteral;
+			case TokenType.String:
+				return this.parseStringLiteral;
 			default:
 				return null;
 		}

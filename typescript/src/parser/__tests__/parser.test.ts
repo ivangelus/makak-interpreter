@@ -7,6 +7,7 @@ import { IfExpression } from "../../ast/expressions/ifExpression";
 import { InfixExpression } from "../../ast/expressions/infix";
 import { IntegerLiteral } from "../../ast/expressions/integerLiteral";
 import { PrefixExpression } from "../../ast/expressions/prefix";
+import { StringLiteral } from "../../ast/expressions/stringLiteral";
 import { ExpressionStatement } from "../../ast/statements/expressionStatement";
 import { LetStatement } from "../../ast/statements/letStatement";
 import { ReturnStatement } from "../../ast/statements/returnStatement";
@@ -139,13 +140,33 @@ describe("Parser", () => {
 				).getExpression() as unknown as IntegerLiteral
 			).getValue(),
 		).toEqual(5);
+	});
+
+	it("should parse string literal expressions", () => {
+		const input = '"let the strings begin";';
+		const lexer = new Lexer(input);
+		const parser = new Parser(lexer);
+		const program = parser.parseProgram();
+
+		const errors = parser.getErrors();
+
+		expect(errors.length).toBe(0);
+
+		expect(program.statements.length).toEqual(1);
+		expect(program.statements[0].constructor.name).toEqual(
+			"ExpressionStatement",
+		);
+		expect(
+			(program.statements[0] as unknown as ExpressionStatement).getExpression()
+				.constructor.name,
+		).toEqual("StringLiteral");
 		expect(
 			(
 				(
 					program.statements[0] as unknown as ExpressionStatement
-				).getExpression() as unknown as IntegerLiteral
+				).getExpression() as unknown as StringLiteral
 			).getValue(),
-		).toEqual(5);
+		).toEqual("let the strings begin");
 	});
 
 	describe("prefix operators", () => {
