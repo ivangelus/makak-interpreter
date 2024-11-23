@@ -8,7 +8,9 @@ import {
 	MonkeyFunction,
 	MonkeyInteger,
 	MonkeyNull,
+	MonkeyString,
 	NULL_OBJECT,
+	STRING_OBJECT,
 	ValueObject,
 } from "../../object/valueObject";
 import { Parser } from "../../parser/parser";
@@ -147,6 +149,17 @@ return 1;
 	])("should evaluate let statements", (input, output) => {
 		const evaluated = testEval(input);
 		testIntegerObject(evaluated, output);
+	});
+
+	it("should evaluate string literals", () => {
+		const input = `"Hello World!"`;
+		const evaluated = testEval(input);
+
+		expect(evaluated.getType()).toEqual(STRING_OBJECT);
+
+		expect((evaluated as unknown as MonkeyString).getValue()).toEqual(
+			"Hello World!",
+		);
 	});
 
 	it("should evaluate basic function", () => {

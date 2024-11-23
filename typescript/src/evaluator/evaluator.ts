@@ -14,6 +14,7 @@ import {
 	MonkeyInteger,
 	MonkeyNull,
 	MonkeyReturn,
+	MonkeyString,
 	RETURN_VALUE_OBJECT,
 	ValueObject,
 } from "../object/valueObject";
@@ -28,6 +29,7 @@ import { Identifier } from "../ast/expressions/identifier";
 import { FunctionLiteral } from "../ast/expressions/functionLiteral";
 import { CallExpression } from "../ast/expressions/callExpression";
 import { Expression } from "../ast/expressions/expression";
+import { StringLiteral } from "../ast/expressions/stringLiteral";
 
 const TRUE = new MonkeyBoolean(true);
 const FALSE = new MonkeyBoolean(false);
@@ -69,6 +71,8 @@ export function evaluate(node: Node, env: MonkeyEnvironment): ValueObject {
 		// expressions
 		case "IntegerLiteral":
 			return new MonkeyInteger((node as unknown as IntegerLiteral).getValue());
+		case "StringLiteral":
+			return new MonkeyString((node as unknown as StringLiteral).getValue());
 		case "Boolean":
 			return nativeBoolToBoolObject((node as unknown as Boolean).getValue());
 		case "PrefixExpression":

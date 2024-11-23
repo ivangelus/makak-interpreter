@@ -10,6 +10,7 @@ export const NULL_OBJECT = "NULL";
 export const RETURN_VALUE_OBJECT = "RETURN_VALUE";
 export const ERROR_OBJECT = "ERROR";
 export const FUNCTION_OBJECT = "FUNCTION";
+export const STRING_OBJECT = "STRING";
 
 export class ValueObject {
 	public getType(): ValueObjectType {
@@ -38,6 +39,27 @@ export class MonkeyInteger extends ValueObject {
 	}
 
 	public getValue(): number {
+		return this.value;
+	}
+}
+
+export class MonkeyString extends ValueObject {
+	value: string;
+
+	constructor(value: string) {
+		super();
+		this.value = value;
+	}
+
+	public inspect(): string {
+		return this.value;
+	}
+
+	public getType(): ValueObjectType {
+		return STRING_OBJECT;
+	}
+
+	public getValue(): string {
 		return this.value;
 	}
 }
