@@ -3,7 +3,6 @@ import { MonkeyEnvironment } from "../../object/environment";
 import {
 	ERROR_OBJECT,
 	FUNCTION_OBJECT,
-	INTEGER_OBJECT,
 	MonkeyBoolean,
 	MonkeyError,
 	MonkeyFunction,
