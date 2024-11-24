@@ -1,12 +1,11 @@
 import {
 	MonkeyBuiltin,
 	MonkeyInteger,
-	MonkeyNull,
 	MonkeyString,
 	STRING_OBJECT,
 	ValueObject,
 } from "../object/valueObject";
-import { newError, NULL } from "./evaluator";
+import { newError } from "./evaluator";
 
 export const builtins = new Map<string, MonkeyBuiltin>([
 	[
