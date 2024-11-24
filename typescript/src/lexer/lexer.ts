@@ -161,13 +161,13 @@ export class Lexer {
 					ch: this.readString(),
 				});
 				break;
-			case '[':
+			case "[":
 				tok = createToken({
 					tokenType: TokenType.LBracket,
 					ch: this.ch,
 				});
 				break;
-			case ']':
+			case "]":
 				tok = createToken({
 					tokenType: TokenType.RBracket,
 					ch: this.ch,

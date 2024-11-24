@@ -1,3 +1,4 @@
+import { ArrayLiteral } from "../../ast/expressions/arrayLiteral";
 import { Boolean } from "../../ast/expressions/boolean";
 import { CallExpression } from "../../ast/expressions/callExpression";
 import { Expression } from "../../ast/expressions/expression";
@@ -415,8 +416,8 @@ describe("function literals", () => {
 	});
 });
 
-describe("function literals", () => {
-	it("should parse function literals", () => {
+describe("call expressions", () => {
+	it("should parse call expressions", () => {
 		const input = "add(1, 2 * 3, 4 + 5);";
 		const lexer = new Lexer(input);
 		const parser = new Parser(lexer);
@@ -441,6 +442,33 @@ describe("function literals", () => {
 
 		testInfixExpression(args[1] as unknown as InfixExpression, 2, "*", 3);
 		testInfixExpression(args[2] as unknown as InfixExpression, 4, "+", 5);
+	});
+});
+
+describe("array literal", () => {
+	it("should parse array literals", () => {
+		const input = "[1, 2 * 2, 3 + 3]";
+		const lexer = new Lexer(input);
+		const parser = new Parser(lexer);
+		const program = parser.parseProgram();
+		const errors = parser.getErrors();
+
+		expect(errors.length).toBe(0);
+		const statements = program.statements;
+		expect(statements.length).toBe(1);
+
+		const expStmt = program.statements[0] as unknown as ExpressionStatement;
+		expect(expStmt.constructor.name).toEqual("ExpressionStatement");
+
+		const arrLit = expStmt.getExpression() as unknown as ArrayLiteral;
+		expect(arrLit.constructor.name).toEqual("ArrayLiteral");
+
+		const elements = arrLit.getElements();
+		expect(elements.length).toBe(3);
+
+		testIntegerLiteral(elements[0] as unknown as IntegerLiteral, 1);
+		testInfixExpression(elements[1] as unknown as InfixExpression, 2, "*", 2);
+		testInfixExpression(elements[2] as unknown as InfixExpression, 3, "+", 3);
 	});
 });
 

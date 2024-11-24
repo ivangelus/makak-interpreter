@@ -16,6 +16,7 @@ import { BlockStatement } from "../ast/statements/blockStatement";
 import { FunctionLiteral } from "../ast/expressions/functionLiteral";
 import { CallExpression } from "../ast/expressions/callExpression";
 import { StringLiteral } from "../ast/expressions/stringLiteral";
+import { ArrayLiteral } from "../ast/expressions/arrayLiteral";
 
 const Precedence = {
 	Lowest: 0,
@@ -254,6 +255,36 @@ export class Parser {
 		return new StringLiteral(this.curToken, this.curToken.literal);
 	};
 
+	private parseArrayLiteral = (): Expression | null => {
+		const arrayLiteral = new ArrayLiteral(this.curToken);
+
+		arrayLiteral.setElements(this.parseExpressionList(TokenType.RBracket));
+		return arrayLiteral;
+	};
+
+	private parseExpressionList(endToken: TokenItem): Expression[] {
+		const list: Expression[] = [];
+
+		if (this.peekTokenIs(endToken)) {
+			this.nextToken();
+			return list;
+		}
+
+		this.nextToken();
+		list.push(this.parseExpression(Precedence.Lowest));
+
+		while (this.peekTokenIs(TokenType.Comma)) {
+			this.nextToken();
+			this.nextToken();
+			list.push(this.parseExpression(Precedence.Lowest));
+		}
+
+		if (!this.expectPeek(endToken)) {
+			return null;
+		}
+		return list;
+	}
+
 	private parseExpression(precedence: PrecedenceValue): Expression | null {
 		const prefixFn = this.prefixParseFnSupplier();
 
@@ -304,6 +335,8 @@ export class Parser {
 				return this.parseFunctionLiteral;
 			case TokenType.String:
 				return this.parseStringLiteral;
+			case TokenType.LBracket:
+				return this.parseArrayLiteral;
 			default:
 				return null;
 		}
