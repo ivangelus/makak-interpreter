@@ -3,6 +3,7 @@ import { MonkeyEnvironment } from "../../object/environment";
 import {
 	ERROR_OBJECT,
 	FUNCTION_OBJECT,
+	INTEGER_OBJECT,
 	MonkeyBoolean,
 	MonkeyError,
 	MonkeyFunction,
@@ -209,6 +210,30 @@ return 1;
     multiplyTwo(3);`;
 
 		testIntegerObject(testEval(input), 6);
+	});
+
+	describe("builtin functions", () => {
+		it.each([
+			[`len("")`, 0],
+			[`len("four")`, 4],
+			[`len("hello world")`, 11],
+			[`len(1)`, 'argument to "len" not supported, got INTEGER'],
+			[`len("one", "two")`, "wrong number of arguments. got=2, want=1"],
+		])("len function", (input, output) => {
+			const evaluated = testEval(input);
+
+			switch (typeof output) {
+				case "string":
+					expect(evaluated.getType()).toEqual(ERROR_OBJECT);
+					expect((evaluated as unknown as MonkeyError).getMessage()).toEqual(
+						output,
+					);
+					break;
+				case "number":
+					testIntegerObject(evaluated, output as unknown as number);
+					break;
+			}
+		});
 	});
 });
 

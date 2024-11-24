@@ -5,10 +5,12 @@ import { Program } from "../ast/program";
 import { ExpressionStatement } from "../ast/statements/expressionStatement";
 import { Statement } from "../ast/statements/statement";
 import {
+	BUILTIN_OBJECT,
 	ERROR_OBJECT,
 	FUNCTION_OBJECT,
 	INTEGER_OBJECT,
 	MonkeyBoolean,
+	MonkeyBuiltin,
 	MonkeyError,
 	MonkeyFunction,
 	MonkeyInteger,
@@ -31,10 +33,12 @@ import { FunctionLiteral } from "../ast/expressions/functionLiteral";
 import { CallExpression } from "../ast/expressions/callExpression";
 import { Expression } from "../ast/expressions/expression";
 import { StringLiteral } from "../ast/expressions/stringLiteral";
+import { builtinModules } from "module";
+import { builtins } from "./builtins";
 
 const TRUE = new MonkeyBoolean(true);
 const FALSE = new MonkeyBoolean(false);
-const NULL = new MonkeyNull();
+export const NULL = new MonkeyNull();
 
 export function evaluate(node: Node, env: MonkeyEnvironment): ValueObject {
 	switch (node.constructor.name) {
@@ -139,16 +143,21 @@ export function evaluate(node: Node, env: MonkeyEnvironment): ValueObject {
 }
 
 function applyFunction(fn: ValueObject, args: ValueObject[]) {
-	if (fn.getType() !== FUNCTION_OBJECT) {
-		return newError(`not a function: ${fn.getType()}`);
+	switch (fn.getType()) {
+		case FUNCTION_OBJECT:
+			const extendedEnv = extendFnEnv(fn as unknown as MonkeyFunction, args);
+			const evaluated = evaluate(
+				(fn as unknown as MonkeyFunction).getBody(),
+				extendedEnv,
+			);
+			return unwrapReturnValue(evaluated);
+		case BUILTIN_OBJECT:
+			return (fn as unknown as MonkeyBuiltin).getFn()(
+				Array.isArray(args) ? args : [args],
+			);
+		default:
+			return newError(`not a function: ${fn.getType()}`);
 	}
-	const extendedEnv = extendFnEnv(fn as unknown as MonkeyFunction, args);
-	const evaluated = evaluate(
-		(fn as unknown as MonkeyFunction).getBody(),
-		extendedEnv,
-	);
-
-	return unwrapReturnValue(evaluated);
 }
 
 function extendFnEnv(fn: MonkeyFunction, args: ValueObject[]) {
@@ -207,6 +216,12 @@ function evalIfExpression(
 
 function evalIdentifier(node: Identifier, env: MonkeyEnvironment): ValueObject {
 	const ident = node.getValue();
+
+	const builtin = builtins.get(ident);
+	if (builtin) {
+		return builtin;
+	}
+
 	const value = env.getValue(ident);
 	if (!value) {
 		return newError(`identifier not found: ${ident}`);
@@ -392,6 +407,6 @@ function evalMinusPrefixOperatorExpression(right: ValueObject): ValueObject {
 	return new MonkeyInteger(-value);
 }
 
-function newError(message: string) {
+export function newError(message: string) {
 	return new MonkeyError(message);
 }

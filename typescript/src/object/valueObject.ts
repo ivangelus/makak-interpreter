@@ -11,6 +11,7 @@ export const RETURN_VALUE_OBJECT = "RETURN_VALUE";
 export const ERROR_OBJECT = "ERROR";
 export const FUNCTION_OBJECT = "FUNCTION";
 export const STRING_OBJECT = "STRING";
+export const BUILTIN_OBJECT = "BUILTIN";
 
 export class ValueObject {
 	public getType(): ValueObjectType {
@@ -182,5 +183,29 @@ export class MonkeyFunction extends ValueObject {
 
 	public getBody(): BlockStatement {
 		return this.body;
+	}
+}
+
+export type BuiltinFunction = (
+	args?: ValueObject | ValueObject[],
+) => ValueObject;
+export class MonkeyBuiltin extends ValueObject {
+	private fn: BuiltinFunction;
+
+	constructor(fn: BuiltinFunction) {
+		super();
+		this.fn = fn;
+	}
+
+	public getFn(): BuiltinFunction {
+		return this.fn;
+	}
+
+	public getType(): ValueObjectType {
+		return BUILTIN_OBJECT;
+	}
+
+	public inspect(): string {
+		return "builtin function";
 	}
 }
