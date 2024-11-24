@@ -12,6 +12,7 @@ export const ERROR_OBJECT = "ERROR";
 export const FUNCTION_OBJECT = "FUNCTION";
 export const STRING_OBJECT = "STRING";
 export const BUILTIN_OBJECT = "BUILTIN";
+export const ARRAY_OBJECT = "ARRAY";
 
 export class ValueObject {
 	public getType(): ValueObjectType {
@@ -207,5 +208,37 @@ export class MonkeyBuiltin extends ValueObject {
 
 	public inspect(): string {
 		return "builtin function";
+	}
+}
+
+export class MonkeyArray extends ValueObject {
+	private elements: ValueObject[];
+
+	constructor(elements: ValueObject[]) {
+		super();
+		this.elements = elements;
+	}
+
+	public getType(): ValueObjectType {
+		return ARRAY_OBJECT;
+	}
+
+	public inspect(): string {
+		let out = "";
+
+		const elements: string[] = [];
+		for (let i = 0; i < this.elements.length; i++) {
+			elements.push(this.elements[i].inspect());
+		}
+
+		out += "[";
+		out += elements.join(", ");
+		out += "]";
+
+		return out;
+	}
+
+	public getElements(): ValueObject[] {
+		return this.elements;
 	}
 }

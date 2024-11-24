@@ -9,6 +9,7 @@ import {
 	ERROR_OBJECT,
 	FUNCTION_OBJECT,
 	INTEGER_OBJECT,
+	MonkeyArray,
 	MonkeyBoolean,
 	MonkeyBuiltin,
 	MonkeyError,
@@ -35,6 +36,7 @@ import { Expression } from "../ast/expressions/expression";
 import { StringLiteral } from "../ast/expressions/stringLiteral";
 import { builtinModules } from "module";
 import { builtins } from "./builtins";
+import { ArrayLiteral } from "../ast/expressions/arrayLiteral";
 
 const TRUE = new MonkeyBoolean(true);
 const FALSE = new MonkeyBoolean(false);
@@ -137,6 +139,15 @@ export function evaluate(node: Node, env: MonkeyEnvironment): ValueObject {
 			}
 
 			return applyFunction(evaluatedFn, args);
+		case "ArrayLiteral":
+			const elements = evalExpressions(
+				(node as unknown as ArrayLiteral).getElements(),
+				env,
+			);
+			if (elements.length === 1 && isErrorObject(elements[0])) {
+				return elements[0];
+			}
+			return new MonkeyArray(elements);
 		default:
 			return null;
 	}

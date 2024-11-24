@@ -1,8 +1,10 @@
 import { Lexer } from "../../lexer/lexer";
 import { MonkeyEnvironment } from "../../object/environment";
 import {
+	ARRAY_OBJECT,
 	ERROR_OBJECT,
 	FUNCTION_OBJECT,
+	MonkeyArray,
 	MonkeyBoolean,
 	MonkeyError,
 	MonkeyFunction,
@@ -212,6 +214,43 @@ return 1;
 	});
 
 	describe("builtin functions", () => {
+		it.each([
+			[`len("")`, 0],
+			[`len("four")`, 4],
+			[`len("hello world")`, 11],
+			[`len(1)`, 'argument to "len" not supported, got INTEGER'],
+			[`len("one", "two")`, "wrong number of arguments. got=2, want=1"],
+		])("len function", (input, output) => {
+			const evaluated = testEval(input);
+
+			switch (typeof output) {
+				case "string":
+					expect(evaluated.getType()).toEqual(ERROR_OBJECT);
+					expect((evaluated as unknown as MonkeyError).getMessage()).toEqual(
+						output,
+					);
+					break;
+				case "number":
+					testIntegerObject(evaluated, output as unknown as number);
+					break;
+			}
+		});
+	});
+
+	describe("arrays", () => {
+		it("should evaluate array literals", () => {
+			const input = "[1, 2 * 2, 3 + 3]";
+			const evaluated = testEval(input);
+
+			expect(evaluated.getType()).toEqual(ARRAY_OBJECT);
+
+			const elements = (evaluated as unknown as MonkeyArray).getElements();
+			expect(elements.length).toEqual(3);
+
+			testIntegerObject(elements[0], 1);
+			testIntegerObject(elements[1], 4);
+			testIntegerObject(elements[2], 6);
+		});
 		it.each([
 			[`len("")`, 0],
 			[`len("four")`, 4],
