@@ -161,6 +161,18 @@ export class Lexer {
 					ch: this.readString(),
 				});
 				break;
+			case '[':
+				tok = createToken({
+					tokenType: TokenType.LBracket,
+					ch: this.ch,
+				});
+				break;
+			case ']':
+				tok = createToken({
+					tokenType: TokenType.RBracket,
+					ch: this.ch,
+				});
+				break;
 			case "\0":
 				tok = createToken({ tokenType: TokenType.Eof, ch: "" });
 				break;

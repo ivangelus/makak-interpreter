@@ -46,6 +46,7 @@ describe("Lexer", () => {
     10 != 9;
 	"foobar"
 	"foo bar"
+	[1, 2];
     `;
 		const lexer = new Lexer(input);
 		const testCases = [
@@ -124,6 +125,12 @@ describe("Lexer", () => {
 			{ expectedType: TokenType.Semicolon, expectedLiteral: ";" },
 			{ expectedType: TokenType.String, expectedLiteral: "foobar" },
 			{ expectedType: TokenType.String, expectedLiteral: "foo bar" },
+			{ expectedType: TokenType.LBracket, expectedLiteral: "[" },
+			{ expectedType: TokenType.Int, expectedLiteral: "1" },
+			{ expectedType: TokenType.Comma, expectedLiteral: "," },
+			{ expectedType: TokenType.Int, expectedLiteral: "2" },
+			{ expectedType: TokenType.RBracket, expectedLiteral: "]" },
+			{ expectedType: TokenType.Semicolon, expectedLiteral: ";" },
 			{ expectedType: TokenType.Eof, expectedLiteral: "" },
 		];
 
