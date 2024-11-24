@@ -5,6 +5,7 @@ import { Expression } from "../../ast/expressions/expression";
 import { FunctionLiteral } from "../../ast/expressions/functionLiteral";
 import { Identifier } from "../../ast/expressions/identifier";
 import { IfExpression } from "../../ast/expressions/ifExpression";
+import { IndexExpression } from "../../ast/expressions/indexExpression";
 import { InfixExpression } from "../../ast/expressions/infix";
 import { IntegerLiteral } from "../../ast/expressions/integerLiteral";
 import { PrefixExpression } from "../../ast/expressions/prefix";
@@ -267,6 +268,11 @@ describe("Parser", () => {
 				"add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
 			],
 			["add(a + b + c * d / f + g)", "add((((a + b) + ((c * d) / f)) + g))"],
+			["a * [1, 2, 3, 4][b * c] * d", "((a * ([1, 2, 3, 4][(b * c)])) * d)"],
+			[
+				"add(a * b[2], b[1], 2 * [1, 2][1])",
+				"add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))",
+			],
 		])("should parse properly", (input, stringified) => {
 			const lexer = new Lexer(input);
 			const parser = new Parser(lexer);
@@ -469,6 +475,32 @@ describe("array literal", () => {
 		testIntegerLiteral(elements[0] as unknown as IntegerLiteral, 1);
 		testInfixExpression(elements[1] as unknown as InfixExpression, 2, "*", 2);
 		testInfixExpression(elements[2] as unknown as InfixExpression, 3, "+", 3);
+	});
+});
+
+describe("index expression", () => {
+	it("should parse index expressions", () => {
+		const input = "myArray[1 + 1]";
+		const lexer = new Lexer(input);
+		const parser = new Parser(lexer);
+		const program = parser.parseProgram();
+		const errors = parser.getErrors();
+
+		expect(errors.length).toBe(0);
+		const statements = program.statements;
+		expect(statements.length).toBe(1);
+
+		const expStmt = program.statements[0] as unknown as ExpressionStatement;
+		expect(expStmt.constructor.name).toEqual("ExpressionStatement");
+
+		const indexExp = expStmt.getExpression() as unknown as IndexExpression;
+		expect(indexExp.constructor.name).toEqual("IndexExpression");
+
+		const index = indexExp.getIndex();
+		const left = indexExp.getLeft();
+
+		testIdentifier(left as unknown as Identifier, "myArray");
+		testInfixExpression(index as unknown as InfixExpression, 1, "+", 1);
 	});
 });
 

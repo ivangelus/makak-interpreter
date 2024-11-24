@@ -17,6 +17,7 @@ import { FunctionLiteral } from "../ast/expressions/functionLiteral";
 import { CallExpression } from "../ast/expressions/callExpression";
 import { StringLiteral } from "../ast/expressions/stringLiteral";
 import { ArrayLiteral } from "../ast/expressions/arrayLiteral";
+import { IndexExpression } from "../ast/expressions/indexExpression";
 
 const Precedence = {
 	Lowest: 0,
@@ -26,6 +27,7 @@ const Precedence = {
 	Product: 4, // *
 	Prefix: 5, // -X or !X
 	Call: 6, // myFunction(X)
+	Index: 7, // [1, 2, 3][0]
 } as const;
 
 const precedenceTable = {
@@ -38,6 +40,7 @@ const precedenceTable = {
 	[TokenType.Slash]: Precedence.Product,
 	[TokenType.Asterisk]: Precedence.Product,
 	[TokenType.LParen]: Precedence.Call,
+	[TokenType.LBracket]: Precedence.Index,
 } as unknown as Record<TokenItem, PrecedenceValue>;
 
 export type PrecedenceValue = (typeof Precedence)[keyof typeof Precedence];
@@ -362,6 +365,8 @@ export class Parser {
 				return this.parseInfixExpression;
 			case TokenType.LParen:
 				return this.parseCallExpression;
+			case TokenType.LBracket:
+				return this.parseIndexExpression;
 			default:
 				return null;
 		}
@@ -384,6 +389,16 @@ export class Parser {
 		const exp = new CallExpression(this.curToken, fn);
 		const args = this.parseCallArgs();
 		exp.setArgs(args);
+		return exp;
+	};
+
+	private parseIndexExpression = (left: Expression): Expression => {
+		const exp = new IndexExpression(this.curToken, left);
+		this.nextToken();
+		exp.setIndex(this.parseExpression(Precedence.Lowest));
+		if (!this.expectPeek(TokenType.RBracket)) {
+			return null;
+		}
 		return exp;
 	};
 
