@@ -266,6 +266,34 @@ return 1;
 					break;
 			}
 		});
+
+		it.each([
+			["last([])", null],
+			["last([1])", 1],
+			["last([2, 3])", 3],
+			["let arr = [1, 2]; last(arr)", 2],
+			["last([], [])", "wrong number of arguments. got=2, want=1"],
+			['last("one")', 'argument to "last" must be ARRAY, got STRING'],
+		])("last function", (input, output) => {
+			const evaluated = testEval(input);
+
+			switch (typeof output) {
+				case "string":
+					expect(evaluated.getType()).toEqual(ERROR_OBJECT);
+					expect((evaluated as unknown as MonkeyError).getMessage()).toEqual(
+						output,
+					);
+					break;
+				case "number":
+					testIntegerObject(evaluated, output as unknown as number);
+					break;
+				case "object":
+					if (output === null) {
+						testNullObject(evaluated);
+					}
+					break;
+			}
+		});
 	});
 
 	describe("arrays", () => {
