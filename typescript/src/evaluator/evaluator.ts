@@ -151,11 +151,17 @@ export function evaluate(node: Node, env: MonkeyEnvironment): ValueObject {
 			}
 			return new MonkeyArray(elements);
 		case "IndexExpression":
-			const left = evaluate((node as unknown as IndexExpression).getLeft(), env);
+			const left = evaluate(
+				(node as unknown as IndexExpression).getLeft(),
+				env,
+			);
 			if (isErrorObject(left)) {
 				return left;
 			}
-			const index = evaluate((node as unknown as IndexExpression).getIndex(), env);
+			const index = evaluate(
+				(node as unknown as IndexExpression).getIndex(),
+				env,
+			);
 			if (isErrorObject(index)) {
 				return index;
 			}
@@ -219,7 +225,10 @@ function evalExpressions(
 	return result;
 }
 
-function evalArrayIndexExpression(array: ValueObject, index: ValueObject): ValueObject {
+function evalArrayIndexExpression(
+	array: ValueObject,
+	index: ValueObject,
+): ValueObject {
 	const arrayObject = array as unknown as MonkeyArray;
 	const idx = (index as unknown as IntegerLiteral).getValue();
 	const max = arrayObject.getElements().length - 1;
@@ -231,7 +240,10 @@ function evalArrayIndexExpression(array: ValueObject, index: ValueObject): Value
 	return arrayObject.getElements()[idx];
 }
 
-function evalIndexExpression(left: ValueObject, index: ValueObject): ValueObject {
+function evalIndexExpression(
+	left: ValueObject,
+	index: ValueObject,
+): ValueObject {
 	if (left.getType() === ARRAY_OBJECT && index.getType() === INTEGER_OBJECT) {
 		return evalArrayIndexExpression(left, index);
 	} else {
