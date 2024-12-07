@@ -331,6 +331,43 @@ return 1;
 					break;
 			}
 		});
+
+		it.each([
+			["push([], 1)", [1]],
+			["push([1], 2)", [1, 2]],
+			["let arr = [1, 2]; push(arr, 1)", [1, 2, 1]],
+			["push([])", "wrong number of arguments. got=1, want=2"],
+			["push([], 1, 1)", "wrong number of arguments. got=3, want=2"],
+			['push("one", 1)', 'argument to "push" must be ARRAY, got STRING'],
+		])("push function", (input, output) => {
+			const evaluated = testEval(input);
+
+			switch (typeof output) {
+				case "string":
+					expect(evaluated.getType()).toEqual(ERROR_OBJECT);
+					expect((evaluated as unknown as MonkeyError).getMessage()).toEqual(
+						output,
+					);
+					break;
+				case "number":
+					testIntegerObject(evaluated, output as unknown as number);
+					break;
+				case "object":
+					if (output === null) {
+						testNullObject(evaluated);
+					}
+					if (Array.isArray(output)) {
+						const elements = (
+							evaluated as unknown as MonkeyArray
+						).getElements();
+						expect(elements.length).toEqual(output.length);
+						for (let i = 0; i < elements.length; i++) {
+							testIntegerObject(elements[i], output[i]);
+						}
+					}
+					break;
+			}
+		});
 	});
 
 	describe("arrays", () => {
