@@ -251,6 +251,27 @@ return 1;
 			testIntegerObject(elements[1], 4);
 			testIntegerObject(elements[2], 6);
 		});
+
+		it.each([
+			["[1, 2, 3][0]", 1],
+			["[1, 2, 3][1]", 2],
+			["[1, 2, 3][2]", 3],
+			["let i = 0; [1][i];", 1],
+			["[1, 2, 3][1 + 1];", 3],
+			["let myArray = [1, 2, 3]; myArray[2];", 3],
+			["let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];", 6],
+			["let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]", 2],
+			["[1, 2, 3][3]", null],
+			["[1, 2, 3][-1]", null],
+		])("should support array index expressions", (input, output) => {
+			const evaluated = testEval(input);
+			if (typeof output === "number") {
+				testIntegerObject(evaluated, output);
+			} else {
+				testNullObject(evaluated);
+			}
+		});
+
 		it.each([
 			[`len("")`, 0],
 			[`len("four")`, 4],

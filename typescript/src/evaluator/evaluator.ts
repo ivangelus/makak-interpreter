@@ -5,6 +5,7 @@ import { Program } from "../ast/program";
 import { ExpressionStatement } from "../ast/statements/expressionStatement";
 import { Statement } from "../ast/statements/statement";
 import {
+	ARRAY_OBJECT,
 	BUILTIN_OBJECT,
 	ERROR_OBJECT,
 	FUNCTION_OBJECT,
@@ -37,6 +38,7 @@ import { StringLiteral } from "../ast/expressions/stringLiteral";
 import { builtinModules } from "module";
 import { builtins } from "./builtins";
 import { ArrayLiteral } from "../ast/expressions/arrayLiteral";
+import { IndexExpression } from "../ast/expressions/indexExpression";
 
 const TRUE = new MonkeyBoolean(true);
 const FALSE = new MonkeyBoolean(false);
@@ -148,6 +150,16 @@ export function evaluate(node: Node, env: MonkeyEnvironment): ValueObject {
 				return elements[0];
 			}
 			return new MonkeyArray(elements);
+		case "IndexExpression":
+			const left = evaluate((node as unknown as IndexExpression).getLeft(), env);
+			if (isErrorObject(left)) {
+				return left;
+			}
+			const index = evaluate((node as unknown as IndexExpression).getIndex(), env);
+			if (isErrorObject(index)) {
+				return index;
+			}
+			return evalIndexExpression(left, index);
 		default:
 			return null;
 	}
@@ -205,6 +217,26 @@ function evalExpressions(
 		result.push(evaluated);
 	}
 	return result;
+}
+
+function evalArrayIndexExpression(array: ValueObject, index: ValueObject): ValueObject {
+	const arrayObject = array as unknown as MonkeyArray;
+	const idx = (index as unknown as IntegerLiteral).getValue();
+	const max = arrayObject.getElements().length - 1;
+
+	if (idx < 0 || idx > max) {
+		return NULL;
+	}
+
+	return arrayObject.getElements()[idx];
+}
+
+function evalIndexExpression(left: ValueObject, index: ValueObject): ValueObject {
+	if (left.getType() === ARRAY_OBJECT && index.getType() === INTEGER_OBJECT) {
+		return evalArrayIndexExpression(left, index);
+	} else {
+		return newError(`index operator not supported: ${left.getType()}`);
+	}
 }
 
 function evalIfExpression(
