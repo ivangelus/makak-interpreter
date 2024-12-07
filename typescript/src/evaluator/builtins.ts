@@ -7,7 +7,7 @@ import {
 	STRING_OBJECT,
 	ValueObject,
 } from "../object/valueObject";
-import { newError } from "./evaluator";
+import { newError, NULL } from "./evaluator";
 
 export const builtins = new Map<string, MonkeyBuiltin>([
 	[
@@ -32,6 +32,29 @@ export const builtins = new Map<string, MonkeyBuiltin>([
 						`argument to "len" not supported, got ${args[0].getType()}`,
 					);
 			}
+		}),
+	],
+	[
+		"first",
+		new MonkeyBuiltin(function (args: ValueObject[]): ValueObject {
+			if (Array.isArray(args) && args.length !== 1) {
+				return newError(
+					`wrong number of arguments. got=${args.length}, want=1`,
+				);
+			}
+
+			if (args[0].getType() !== ARRAY_OBJECT) {
+				return newError(
+					`argument to "first" must be ARRAY, got ${args[0].getType()}`,
+				);
+			}
+
+			const arr = args[0] as unknown as MonkeyArray;
+
+			if (arr.getElements().length > 0) {
+				return arr.getElements()[0];
+			}
+			return NULL;
 		}),
 	],
 ]);

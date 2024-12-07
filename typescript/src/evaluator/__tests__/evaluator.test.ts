@@ -238,6 +238,34 @@ return 1;
 					break;
 			}
 		});
+
+		it.each([
+			["first([])", null],
+			["first([1])", 1],
+			["first([2, 3])", 2],
+			["let arr = [1, 2]; first(arr)", 1],
+			["first([], [])", "wrong number of arguments. got=2, want=1"],
+			['first("one")', 'argument to "first" must be ARRAY, got STRING'],
+		])("first function", (input, output) => {
+			const evaluated = testEval(input);
+
+			switch (typeof output) {
+				case "string":
+					expect(evaluated.getType()).toEqual(ERROR_OBJECT);
+					expect((evaluated as unknown as MonkeyError).getMessage()).toEqual(
+						output,
+					);
+					break;
+				case "number":
+					testIntegerObject(evaluated, output as unknown as number);
+					break;
+				case "object":
+					if (output === null) {
+						testNullObject(evaluated);
+					}
+					break;
+			}
+		});
 	});
 
 	describe("arrays", () => {
