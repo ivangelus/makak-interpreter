@@ -1,4 +1,6 @@
 import {
+	ARRAY_OBJECT,
+	MonkeyArray,
 	MonkeyBuiltin,
 	MonkeyInteger,
 	MonkeyString,
@@ -20,6 +22,10 @@ export const builtins = new Map<string, MonkeyBuiltin>([
 				case STRING_OBJECT:
 					return new MonkeyInteger(
 						(args[0] as unknown as MonkeyString).getValue().length,
+					);
+				case ARRAY_OBJECT:
+					return new MonkeyInteger(
+						(args[0] as unknown as MonkeyArray).getElements().length,
 					);
 				default:
 					return newError(

@@ -218,6 +218,9 @@ return 1;
 			[`len("")`, 0],
 			[`len("four")`, 4],
 			[`len("hello world")`, 11],
+			[`len([1, 2, 3])`, 3],
+			[`len([])`, 0],
+			[`let arr = [1, 2]; len(arr)`, 2],
 			[`len(1)`, 'argument to "len" not supported, got INTEGER'],
 			[`len("one", "two")`, "wrong number of arguments. got=2, want=1"],
 		])("len function", (input, output) => {
