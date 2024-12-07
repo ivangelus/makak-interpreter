@@ -294,6 +294,43 @@ return 1;
 					break;
 			}
 		});
+
+		it.each([
+			["rest([])", null],
+			["rest([1])", []],
+			["rest([2, 3])", [3]],
+			["let arr = [1, 2]; rest(arr)", [2]],
+			["rest([], [])", "wrong number of arguments. got=2, want=1"],
+			['rest("one")', 'argument to "rest" must be ARRAY, got STRING'],
+		])("rest function", (input, output) => {
+			const evaluated = testEval(input);
+
+			switch (typeof output) {
+				case "string":
+					expect(evaluated.getType()).toEqual(ERROR_OBJECT);
+					expect((evaluated as unknown as MonkeyError).getMessage()).toEqual(
+						output,
+					);
+					break;
+				case "number":
+					testIntegerObject(evaluated, output as unknown as number);
+					break;
+				case "object":
+					if (output === null) {
+						testNullObject(evaluated);
+					}
+					if (Array.isArray(output)) {
+						const elements = (
+							evaluated as unknown as MonkeyArray
+						).getElements();
+						expect(elements.length).toEqual(output.length);
+						for (let i = 0; i < elements.length; i++) {
+							testIntegerObject(elements[i], output[i]);
+						}
+					}
+					break;
+			}
+		});
 	});
 
 	describe("arrays", () => {

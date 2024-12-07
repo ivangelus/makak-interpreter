@@ -80,4 +80,28 @@ export const builtins = new Map<string, MonkeyBuiltin>([
 			return NULL;
 		}),
 	],
+	[
+		"rest",
+		new MonkeyBuiltin(function (args: ValueObject[]): ValueObject {
+			if (Array.isArray(args) && args.length !== 1) {
+				return newError(
+					`wrong number of arguments. got=${args.length}, want=1`,
+				);
+			}
+
+			if (args[0].getType() !== ARRAY_OBJECT) {
+				return newError(
+					`argument to "rest" must be ARRAY, got ${args[0].getType()}`,
+				);
+			}
+
+			const arr = args[0] as unknown as MonkeyArray;
+			const length = arr.getElements().length;
+			if (length > 0) {
+				const newElements = arr.getElements().slice(1);
+				return new MonkeyArray(newElements);
+			}
+			return NULL;
+		}),
+	],
 ]);
