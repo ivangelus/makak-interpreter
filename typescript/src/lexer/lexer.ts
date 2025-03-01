@@ -152,6 +152,9 @@ export class Lexer {
 			case "{":
 				tok = createToken({ tokenType: TokenType.LBrace, ch: this.ch });
 				break;
+			case ":":
+				tok = createToken({ tokenType: TokenType.Colon, ch: this.ch });
+				break;
 			case "}":
 				tok = createToken({ tokenType: TokenType.RBrace, ch: this.ch });
 				break;

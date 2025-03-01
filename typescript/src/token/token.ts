@@ -37,6 +37,7 @@ export const TokenType = {
 	RBrace: "}",
 	LBracket: "[",
 	RBracket: "]",
+	Colon: ":",
 
 	// Keywords
 	Function: "FUNCTION",
