@@ -18,6 +18,7 @@ import { CallExpression } from "../ast/expressions/callExpression";
 import { StringLiteral } from "../ast/expressions/stringLiteral";
 import { ArrayLiteral } from "../ast/expressions/arrayLiteral";
 import { IndexExpression } from "../ast/expressions/indexExpression";
+import { HashLiteral } from "../ast/expressions/hashLiteral";
 
 const Precedence = {
 	Lowest: 0,
@@ -139,6 +140,38 @@ export class Parser {
 		const intLit = new IntegerLiteral(this.curToken, intValue);
 
 		return intLit;
+	};
+
+	private parseHashLiteral = (): Expression => {
+		const hashLiteral = new HashLiteral(this.curToken);
+		const pairs = new Map<Expression, Expression>;
+
+		while (!this.peekTokenIs(TokenType.RBrace)) {
+			this.nextToken();
+
+			const key = this.parseExpression(Precedence.Lowest);
+
+			if (!this.expectPeek(TokenType.Colon)) {
+				return null;
+			}
+
+			this.nextToken();
+			const value = this.parseExpression(Precedence.Lowest);
+
+			pairs.set(key, value);
+
+			if (!this.peekTokenIs(TokenType.RBrace) && !this.expectPeek(TokenType.Comma)) {
+				return null;
+			}
+		}
+
+		if (!this.expectPeek(TokenType.RBrace)) {
+			return null;
+		}
+
+		hashLiteral.setPairs(pairs);
+
+		return hashLiteral;
 	};
 
 	private parseIdentifier = (): Expression => {
@@ -340,6 +373,8 @@ export class Parser {
 				return this.parseStringLiteral;
 			case TokenType.LBracket:
 				return this.parseArrayLiteral;
+			case TokenType.LBrace:
+				return this.parseHashLiteral;
 			default:
 				return null;
 		}

@@ -1,4 +1,5 @@
 import { ArrayLiteral } from "../../ast/expressions/arrayLiteral";
+import { HashLiteral } from "../../ast/expressions/hashLiteral";
 import { Boolean } from "../../ast/expressions/boolean";
 import { CallExpression } from "../../ast/expressions/callExpression";
 import { Expression } from "../../ast/expressions/expression";
@@ -476,6 +477,104 @@ describe("array literal", () => {
 		testInfixExpression(elements[1] as unknown as InfixExpression, 2, "*", 2);
 		testInfixExpression(elements[2] as unknown as InfixExpression, 3, "+", 3);
 	});
+});
+
+describe("hash literal", () => {
+	it("should parse hash literals", () => {
+		const input = `{ "one": 1, "two": 2, "three": 3 }`;
+		const lexer = new Lexer(input);
+		const parser = new Parser(lexer);
+		const program = parser.parseProgram();
+		const errors = parser.getErrors();
+
+		expect(errors.length).toBe(0);
+		const statements = program.statements;
+		expect(statements.length).toBe(1);
+
+		const expStmt = program.statements[0] as unknown as ExpressionStatement;
+		expect(expStmt.constructor.name).toEqual("ExpressionStatement");
+
+		const hashLiteral = expStmt.getExpression() as unknown as HashLiteral;
+		expect(hashLiteral.constructor.name).toEqual("HashLiteral");
+
+		const pairs = hashLiteral.getPairs();
+		expect(pairs.size).toEqual(3);
+
+		const expected = new Map([
+			["one", 1],
+			["two", 2],
+			["three", 3],
+		]);
+
+		for (const [key, value] of pairs) {
+			const stringLiteral = key as unknown as StringLiteral;
+			const integerLiteral = value as unknown as IntegerLiteral;
+			expect(stringLiteral.constructor.name).toEqual("StringLiteral");
+			expect(integerLiteral.constructor.name).toEqual("IntegerLiteral");
+
+			const expectedValue = expected.get(key.toString());
+
+			testIntegerLiteral(integerLiteral, expectedValue);
+		}
+	});
+
+	it("should parse empty hash literals", () => {
+		const input = `{}`;
+		const lexer = new Lexer(input);
+		const parser = new Parser(lexer);
+		const program = parser.parseProgram();
+		const errors = parser.getErrors();
+
+		expect(errors.length).toBe(0);
+		const statements = program.statements;
+		expect(statements.length).toBe(1);
+
+		const expStmt = program.statements[0] as unknown as ExpressionStatement;
+		expect(expStmt.constructor.name).toEqual("ExpressionStatement");
+
+		const hashLiteral = expStmt.getExpression() as unknown as HashLiteral;
+		expect(hashLiteral.constructor.name).toEqual("HashLiteral");
+
+		const pairs = hashLiteral.getPairs();
+		expect(pairs.size).toEqual(0);
+	});
+
+	it("should parse hash literals with expressions", () => {
+		const input = `{ "one": 0 + 1, "two": 10 - 8, "three": 15 / 5 }`;
+		const lexer = new Lexer(input);
+		const parser = new Parser(lexer);
+		const program = parser.parseProgram();
+		const errors = parser.getErrors();
+
+		expect(errors.length).toBe(0);
+		const statements = program.statements;
+		expect(statements.length).toBe(1);
+
+		const expStmt = program.statements[0] as unknown as ExpressionStatement;
+		expect(expStmt.constructor.name).toEqual("ExpressionStatement");
+
+		const hashLiteral = expStmt.getExpression() as unknown as HashLiteral;
+		expect(hashLiteral.constructor.name).toEqual("HashLiteral");
+
+		const pairs = hashLiteral.getPairs();
+		expect(pairs.size).toEqual(3);
+
+		const expected = new Map([
+			["one", (e: InfixExpression) => testInfixExpression(e, 0, "+", 1)],
+			["two", (e: InfixExpression) => testInfixExpression(e, 10, "-", 8)],
+			["three", (e: InfixExpression) => testInfixExpression(e, 15, "/", 5)],
+		]);
+
+		for (const [key, value] of pairs) {
+			const stringLiteral = key as unknown as StringLiteral;
+			expect(stringLiteral.constructor.name).toEqual("StringLiteral");
+			const testFunc = expected.get(stringLiteral.toString());
+			expect(testFunc).toBeDefined();
+			testFunc(value as unknown as InfixExpression);
+		}
+	});
+
+
 });
 
 describe("index expression", () => {
