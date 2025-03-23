@@ -573,8 +573,6 @@ describe("hash literal", () => {
 			testFunc(value as unknown as InfixExpression);
 		}
 	});
-
-
 });
 
 describe("index expression", () => {

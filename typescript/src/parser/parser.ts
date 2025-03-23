@@ -144,7 +144,7 @@ export class Parser {
 
 	private parseHashLiteral = (): Expression => {
 		const hashLiteral = new HashLiteral(this.curToken);
-		const pairs = new Map<Expression, Expression>;
+		const pairs = new Map<Expression, Expression>();
 
 		while (!this.peekTokenIs(TokenType.RBrace)) {
 			this.nextToken();
@@ -160,7 +160,10 @@ export class Parser {
 
 			pairs.set(key, value);
 
-			if (!this.peekTokenIs(TokenType.RBrace) && !this.expectPeek(TokenType.Comma)) {
+			if (
+				!this.peekTokenIs(TokenType.RBrace) &&
+				!this.expectPeek(TokenType.Comma)
+			) {
 				return null;
 			}
 		}
