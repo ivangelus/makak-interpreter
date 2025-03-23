@@ -1,3 +1,4 @@
+import * as crypto from "node:crypto";
 import { Identifier } from "../ast/expressions/identifier";
 import { BlockStatement } from "../ast/statements/blockStatement";
 import { MonkeyEnvironment } from "./environment";
@@ -24,12 +25,21 @@ export class ValueObject {
 	}
 }
 
+export type HashKey = {
+	type: ValueObjectType;
+	value: number;
+};
+
 export class MonkeyInteger extends ValueObject {
 	value: number;
 
 	constructor(value: number) {
 		super();
 		this.value = value;
+	}
+
+	public hashKey(): HashKey {
+		return { type: this.getType(), value: this.value };
 	}
 
 	public inspect(): string {
@@ -53,6 +63,20 @@ export class MonkeyString extends ValueObject {
 		this.value = value;
 	}
 
+	public hashKey(): HashKey {
+		const hash = crypto.createHash("sha256");
+		hash.update(this.value);
+		const hashBuffer = hash.digest();
+
+		// Read first 6 bytes (48 bits) and convert to a regular number
+		const numericHash = hashBuffer.readUIntBE(0, 6); // Ensures result is within Number's safe range
+
+		return {
+			type: this.getType(),
+			value: numericHash,
+		};
+	}
+
 	public inspect(): string {
 		return this.value;
 	}
@@ -72,6 +96,18 @@ export class MonkeyBoolean extends ValueObject {
 	constructor(value: boolean) {
 		super();
 		this.value = value;
+	}
+
+	public hashKey(): HashKey {
+		let value: number;
+
+		if (this.value) {
+			value = 1;
+		} else {
+			value = 0;
+		}
+
+		return { type: this.getType(), value };
 	}
 
 	public inspect(): string {
