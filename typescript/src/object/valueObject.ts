@@ -14,6 +14,7 @@ export const FUNCTION_OBJECT = "FUNCTION";
 export const STRING_OBJECT = "STRING";
 export const BUILTIN_OBJECT = "BUILTIN";
 export const ARRAY_OBJECT = "ARRAY";
+export const HASH_OBJECT = "HASH";
 
 export class ValueObject {
 	public getType(): ValueObjectType {
@@ -29,6 +30,34 @@ export type HashKey = {
 	type: ValueObjectType;
 	value: number;
 };
+
+export type HashPair = {
+	key: object;
+	value: object;
+};
+
+export class MonkeyHash extends ValueObject {
+	pairs: Map<HashKey, HashPair>;
+
+	public getType(): ValueObjectType {
+		return HASH_OBJECT;
+	}
+
+	public inspect(): string {
+		let out = "";
+
+		const pairs = [];
+		for (const [key, value] of this.pairs) {
+			pairs.push(`${key.toString()}: ${value.toString()}`);
+		}
+
+		out += "{";
+		out += pairs.join(", ");
+		out += "}";
+
+		return out;
+	}
+}
 
 export class MonkeyInteger extends ValueObject {
 	value: number;
