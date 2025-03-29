@@ -6,7 +6,7 @@ import { MonkeyEnvironment } from "./environment";
 type ValueObjectType = string;
 
 export const INTEGER_OBJECT = "INTEGER";
-const BOOLEAN_OBJECT = "BOOLEAN";
+export const BOOLEAN_OBJECT = "BOOLEAN";
 export const NULL_OBJECT = "NULL";
 export const RETURN_VALUE_OBJECT = "RETURN_VALUE";
 export const ERROR_OBJECT = "ERROR";
@@ -26,10 +26,7 @@ export class ValueObject {
 	}
 }
 
-export type HashKey = {
-	type: ValueObjectType;
-	value: number;
-};
+export type HashKey = string;
 
 export type HashPair = {
 	key: object;
@@ -39,6 +36,11 @@ export type HashPair = {
 export class MonkeyHash extends ValueObject {
 	pairs: Map<HashKey, HashPair>;
 
+	constructor(pairs: Map<HashKey, HashPair>) {
+		super();
+		this.pairs = pairs;
+	}
+
 	public getType(): ValueObjectType {
 		return HASH_OBJECT;
 	}
@@ -47,15 +49,27 @@ export class MonkeyHash extends ValueObject {
 		let out = "";
 
 		const pairs = [];
-		for (const [key, value] of this.pairs) {
-			pairs.push(`${key.toString()}: ${value.toString()}`);
+		for (const [, pair] of this.pairs) {
+			// Ignore hashed keys, use stored key instead
+			// @ts-ignore
+			const keyStr = pair.key.inspect
+				? pair.key.inspect()
+				: pair.key.toString();
+			// @ts-ignore
+			const valueStr = pair.value.inspect
+				? pair.value.inspect()
+				: pair.value.toString();
+			pairs.push(`${keyStr}: ${valueStr}`);
 		}
-
 		out += "{";
 		out += pairs.join(", ");
 		out += "}";
 
 		return out;
+	}
+
+	public getPairs(): Map<HashKey, HashPair> {
+		return this.pairs;
 	}
 }
 
@@ -68,7 +82,7 @@ export class MonkeyInteger extends ValueObject {
 	}
 
 	public hashKey(): HashKey {
-		return { type: this.getType(), value: this.value };
+		return `${this.getType()}_${this.value}`;
 	}
 
 	public inspect(): string {
@@ -100,10 +114,7 @@ export class MonkeyString extends ValueObject {
 		// Read first 6 bytes (48 bits) and convert to a regular number
 		const numericHash = hashBuffer.readUIntBE(0, 6); // Ensures result is within Number's safe range
 
-		return {
-			type: this.getType(),
-			value: numericHash,
-		};
+		return `${this.getType()}_${numericHash}`;
 	}
 
 	public inspect(): string {
@@ -136,7 +147,7 @@ export class MonkeyBoolean extends ValueObject {
 			value = 0;
 		}
 
-		return { type: this.getType(), value };
+		return `${this.getType()}_${value}`;
 	}
 
 	public inspect(): string {

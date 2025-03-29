@@ -6,15 +6,20 @@ import { ExpressionStatement } from "../ast/statements/expressionStatement";
 import { Statement } from "../ast/statements/statement";
 import {
 	ARRAY_OBJECT,
+	BOOLEAN_OBJECT,
 	BUILTIN_OBJECT,
 	ERROR_OBJECT,
 	FUNCTION_OBJECT,
+	HASH_OBJECT,
+	HashKey,
+	HashPair,
 	INTEGER_OBJECT,
 	MonkeyArray,
 	MonkeyBoolean,
 	MonkeyBuiltin,
 	MonkeyError,
 	MonkeyFunction,
+	MonkeyHash,
 	MonkeyInteger,
 	MonkeyNull,
 	MonkeyReturn,
@@ -35,13 +40,13 @@ import { FunctionLiteral } from "../ast/expressions/functionLiteral";
 import { CallExpression } from "../ast/expressions/callExpression";
 import { Expression } from "../ast/expressions/expression";
 import { StringLiteral } from "../ast/expressions/stringLiteral";
-import { builtinModules } from "module";
 import { builtins } from "./builtins";
 import { ArrayLiteral } from "../ast/expressions/arrayLiteral";
 import { IndexExpression } from "../ast/expressions/indexExpression";
+import { HashLiteral } from "../ast/expressions/hashLiteral";
 
-const TRUE = new MonkeyBoolean(true);
-const FALSE = new MonkeyBoolean(false);
+export const TRUE = new MonkeyBoolean(true);
+export const FALSE = new MonkeyBoolean(false);
 export const NULL = new MonkeyNull();
 
 export function evaluate(node: Node, env: MonkeyEnvironment): ValueObject {
@@ -166,6 +171,8 @@ export function evaluate(node: Node, env: MonkeyEnvironment): ValueObject {
 				return index;
 			}
 			return evalIndexExpression(left, index);
+		case "HashLiteral":
+			return evalHashLiteral(node as unknown as HashLiteral, env);
 		default:
 			return null;
 	}
@@ -206,6 +213,37 @@ function unwrapReturnValue(val: ValueObject): ValueObject {
 	}
 
 	return val;
+}
+
+function evalHashLiteral(
+	node: HashLiteral,
+	env: MonkeyEnvironment,
+): ValueObject {
+	const pairs = new Map<HashKey, HashPair>();
+	for (const [keyNode, valueNode] of node.getPairs()) {
+		const key = evaluate(keyNode, env);
+		if (isErrorObject(key)) {
+			return key;
+		}
+		if (
+			![HASH_OBJECT, INTEGER_OBJECT, STRING_OBJECT, BOOLEAN_OBJECT].includes(
+				key.getType(),
+			)
+		) {
+			return newError(`unusable as hash key: ${key.getType()}`);
+		}
+
+		const value = evaluate(valueNode, env);
+		if (isErrorObject(value)) {
+			return value;
+		}
+
+		// @ts-ignore
+		const hashed = key.hashKey();
+
+		pairs.set(hashed as HashKey, { key, value } as HashPair);
+	}
+	return new MonkeyHash(pairs);
 }
 
 function evalExpressions(

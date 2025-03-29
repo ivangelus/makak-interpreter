@@ -4,10 +4,12 @@ import {
 	ARRAY_OBJECT,
 	ERROR_OBJECT,
 	FUNCTION_OBJECT,
+	HASH_OBJECT,
 	MonkeyArray,
 	MonkeyBoolean,
 	MonkeyError,
 	MonkeyFunction,
+	MonkeyHash,
 	MonkeyInteger,
 	MonkeyNull,
 	MonkeyString,
@@ -16,7 +18,7 @@ import {
 	ValueObject,
 } from "../../object/valueObject";
 import { Parser } from "../../parser/parser";
-import { evaluate } from "../evaluator";
+import { evaluate, FALSE, TRUE } from "../evaluator";
 
 describe("Evaluator", () => {
 	it.each([
@@ -366,6 +368,45 @@ return 1;
 						}
 					}
 					break;
+			}
+		});
+	});
+
+	describe("hash literals", () => {
+		it("should evaluate hash literals", () => {
+			const input = `let two = "two";
+{
+           "one": 10 - 9,
+           two: 1 + 1,
+           "thr" + "ee": 6 / 2,
+           4: 4,
+           true: 5,
+           false: 6
+}`;
+			const evaluated = testEval(input);
+
+			expect(evaluated.getType()).toEqual(HASH_OBJECT);
+
+			const expected = new Map([
+				[new MonkeyString("one").hashKey(), 1],
+				[new MonkeyString("two").hashKey(), 2],
+				[new MonkeyString("three").hashKey(), 3],
+				[new MonkeyInteger(4).hashKey(), 4],
+				[TRUE.hashKey(), 5],
+				[FALSE.hashKey(), 6],
+			]);
+
+			const pairs = (evaluated as unknown as MonkeyHash).getPairs();
+
+			expect(pairs.size).toEqual(expected.size);
+
+			for (const [key, value] of expected) {
+				const pairValue = pairs.get(key);
+				expect(pairValue).toBeDefined();
+				const integerObject = pairValue.value as unknown as MonkeyInteger;
+				expect(integerObject.constructor.name).toEqual("MonkeyInteger");
+
+				testIntegerObject(integerObject, value);
 			}
 		});
 	});
