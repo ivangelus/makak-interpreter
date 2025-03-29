@@ -125,4 +125,14 @@ export const builtins = new Map<string, MonkeyBuiltin>([
 			return new MonkeyArray(newElements);
 		}),
 	],
+	[
+		"puts",
+		new MonkeyBuiltin(function (args: ValueObject[]): ValueObject {
+			for (const arg of args) {
+				console.log(arg.inspect());
+			}
+
+			return NULL;
+		}),
+	],
 ]);
