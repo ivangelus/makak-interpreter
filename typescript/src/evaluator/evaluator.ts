@@ -284,9 +284,31 @@ function evalIndexExpression(
 ): ValueObject {
 	if (left.getType() === ARRAY_OBJECT && index.getType() === INTEGER_OBJECT) {
 		return evalArrayIndexExpression(left, index);
+	} else if (left.getType() === HASH_OBJECT) {
+		return evalHashIndexExpression(left as unknown as MonkeyHash, index);
 	} else {
 		return newError(`index operator not supported: ${left.getType()}`);
 	}
+}
+
+function evalHashIndexExpression(
+	hash: MonkeyHash,
+	index: ValueObject,
+): ValueObject {
+	if (
+		![HASH_OBJECT, INTEGER_OBJECT, STRING_OBJECT, BOOLEAN_OBJECT].includes(
+			index.getType(),
+		)
+	) {
+		return newError(`unusable as hash key: ${index.getType()}`);
+	}
+
+	// @ts-ignore
+	const pair = hash.getPairs().get(index.hashKey());
+	if (!pair) {
+		return NULL;
+	}
+	return pair.value;
 }
 
 function evalIfExpression(

@@ -409,6 +409,34 @@ return 1;
 				testIntegerObject(integerObject, value);
 			}
 		});
+
+		it.each([
+			[`{"foo": 5}["foo"]`, 5],
+			[`{"foo": 5}["bar"]`, null],
+			[`let key = "foo"; {"foo": 5}[key]`, 5],
+			[`{}["foo"]`, null],
+			[`{5: 5}[5]`, 5],
+			[`{true: 5}[true]`, 5],
+			[`{false: 5}[false]`, 5],
+		])("should support index expressions with hash", (input, output) => {
+			const evaluated = testEval(input);
+
+			if (output !== null) {
+				testIntegerObject(evaluated, output);
+			} else {
+				testNullObject(evaluated);
+			}
+		});
+
+		it("should not allow all types as hash keys", () => {
+			const input = `{"name": "Monkey"}[fn(x) { x }];`;
+			const evaluated = testEval(input);
+
+			expect(evaluated.getType()).toEqual(ERROR_OBJECT);
+			expect((evaluated as unknown as MonkeyError).getMessage()).toEqual(
+				"unusable as hash key: FUNCTION",
+			);
+		});
 	});
 
 	describe("arrays", () => {
