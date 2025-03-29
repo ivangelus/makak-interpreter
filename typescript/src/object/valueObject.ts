@@ -29,8 +29,8 @@ export class ValueObject {
 export type HashKey = string;
 
 export type HashPair = {
-	key: object;
-	value: object;
+	key: ValueObject;
+	value: ValueObject;
 };
 
 export class MonkeyHash extends ValueObject {
@@ -49,17 +49,11 @@ export class MonkeyHash extends ValueObject {
 		let out = "";
 
 		const pairs = [];
+		// Ignore hashed keys, use stored key instead
 		for (const [, pair] of this.pairs) {
-			// Ignore hashed keys, use stored key instead
-			// @ts-ignore
-			const keyStr = pair.key.inspect
-				? pair.key.inspect()
-				: pair.key.toString();
-			// @ts-ignore
-			const valueStr = pair.value.inspect
-				? pair.value.inspect()
-				: pair.value.toString();
-			pairs.push(`${keyStr}: ${valueStr}`);
+			const keyString = pair.key.inspect();
+			const valueString = pair.value.inspect();
+			pairs.push(`${keyString}: ${valueString}`);
 		}
 		out += "{";
 		out += pairs.join(", ");
